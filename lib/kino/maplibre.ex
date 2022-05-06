@@ -25,12 +25,12 @@ defmodule Kino.Maplibre do
   Creates a new kino with the given Maplibre style.
   """
   @spec new(Maplibre.t()) :: t()
-  def new(ml) when is_struct(ml, Maplibre) do
+  def new(%Maplibre{} = ml) do
     Kino.JS.Live.new(__MODULE__, ml)
   end
 
   @doc false
-  def static(ml) when is_struct(ml, Maplibre) do
+  def static(%Maplibre{} = ml) do
     data = %{spec: Maplibre.to_spec(ml)}
     events = Map.from_struct(ml) |> Map.get(:events)
     data = if events, do: Map.merge(data, events), else: data
@@ -83,7 +83,7 @@ defmodule Kino.Maplibre do
   @spec add_marker(t() | Maplibre.t(), location(), keyword()) :: :ok | Maplibre.t()
   def add_marker(map, location, opts \\ [])
 
-  def add_marker(ml, location, opts) when is_struct(ml, Maplibre) do
+  def add_marker(%Maplibre{} = ml, location, opts) do
     marker = %{location: normalize_location(location), options: normalize_opts(opts)}
     update_events(ml, "markers", marker)
   end
@@ -119,7 +119,7 @@ defmodule Kino.Maplibre do
   @spec add_nav_controls(t() | Maplibre.t(), keyword()) :: :ok | Maplibre.t()
   def add_nav_controls(map, opts \\ [])
 
-  def add_nav_controls(ml, opts) when is_struct(ml, Maplibre) do
+  def add_nav_controls(%Maplibre{} = ml, opts) do
     position = Keyword.get(opts, :position, "top-right")
     control = %{position: position, options: normalize_opts(opts)}
     update_events(ml, "controls", control)
@@ -137,7 +137,7 @@ defmodule Kino.Maplibre do
         Kino.Maplibre.clusters_expansion(map, "earthquakes-clusters")
   """
   @spec clusters_expansion(Maplibre.t(), String.t()) :: Maplibre
-  def clusters_expansion(ml, clusters_id) when is_struct(ml, Maplibre) do
+  def clusters_expansion(%Maplibre{} = ml, clusters_id) do
     update_events(ml, "clusters", clusters_id)
   end
 
@@ -158,7 +158,7 @@ defmodule Kino.Maplibre do
   details.
   """
   @spec add_hover(Maplibre.t(), String.t()) :: Maplibre.t()
-  def add_hover(ml, layer_id) when is_struct(ml, Maplibre) do
+  def add_hover(%Maplibre{} = ml, layer_id) do
     update_events(ml, "hover", layer_id)
   end
 
@@ -172,7 +172,7 @@ defmodule Kino.Maplibre do
   Receives the ID of the symbols layer and adds the event to all the symbols present in that layer
   """
   @spec center_on_click(Maplibre.t(), String.t()) :: Maplibre.t()
-  def center_on_click(ml, symbols_id) when is_struct(ml, Maplibre) do
+  def center_on_click(%Maplibre{} = ml, symbols_id) do
     update_events(ml, "center", symbols_id)
   end
 
@@ -186,7 +186,7 @@ defmodule Kino.Maplibre do
   style's sprite using its ID
   """
   @spec add_custom_image(Maplibre.t(), String.t(), String.t()) :: Maplibre.t()
-  def add_custom_image(ml, image_url, image_name) when is_struct(ml, Maplibre) do
+  def add_custom_image(%Maplibre{} = ml, image_url, image_name) do
     image = %{url: image_url, name: image_name}
     update_events(ml, "images", image)
   end
