@@ -32,6 +32,8 @@ defmodule Kino.Maplibre do
   @doc false
   def static(ml) when is_struct(ml, Maplibre) do
     data = %{spec: Maplibre.to_spec(ml)}
+    events = Map.from_struct(ml) |> Map.get(:events)
+    data = if events, do: Map.merge(data, events), else: data
 
     Kino.JS.new(__MODULE__, data, export_info_string: "maplibre", export_key: :spec)
   end
@@ -78,8 +80,15 @@ defmodule Kino.Maplibre do
 
     See [the docs](https://maplibre.org/maplibre-gl-js-docs/api/markers/#marker) for more details.
   """
-  @spec add_marker(t(), location(), keyword()) :: :ok
-  def add_marker(kino, location, opts \\ []) do
+  @spec add_marker(t() | Maplibre.t(), location(), keyword()) :: :ok | Maplibre.t()
+  def add_marker(map, location, opts \\ [])
+
+  def add_marker(ml, location, opts) when is_struct(ml, Maplibre) do
+    marker = %{location: normalize_location(location), options: normalize_opts(opts)}
+    update_events(ml, "markers", marker)
+  end
+
+  def add_marker(kino, location, opts) do
     Kino.JS.Live.cast(kino, {:add_marker, normalize_location(location), normalize_opts(opts)})
   end
 
@@ -107,8 +116,16 @@ defmodule Kino.Maplibre do
         Kino.Maplibre.add_nav_controls(map, show_compass: false)
         Kino.Maplibre.add_nav_controls(map, show_zoom: false, position: "top-left")
   """
-  @spec add_nav_controls(t(), keyword()) :: :ok
-  def add_nav_controls(kino, opts \\ []) do
+  @spec add_nav_controls(t() | Maplibre.t(), keyword()) :: :ok | Maplibre.t()
+  def add_nav_controls(map, opts \\ [])
+
+  def add_nav_controls(ml, opts) when is_struct(ml, Maplibre) do
+    position = Keyword.get(opts, :position, "top-right")
+    control = %{position: position, options: normalize_opts(opts)}
+    update_events(ml, "controls", control)
+  end
+
+  def add_nav_controls(kino, opts) do
     position = Keyword.get(opts, :position, "top-right")
     Kino.JS.Live.cast(kino, {:add_nav_controls, position, normalize_opts(opts)})
   end
@@ -119,6 +136,11 @@ defmodule Kino.Maplibre do
 
         Kino.Maplibre.clusters_expansion(map, "earthquakes-clusters")
   """
+  @spec clusters_expansion(Maplibre.t(), String.t()) :: Maplibre
+  def clusters_expansion(ml, clusters_id) when is_struct(ml, Maplibre) do
+    update_events(ml, "clusters", clusters_id)
+  end
+
   @spec clusters_expansion(t(), String.t()) :: :ok
   def clusters_expansion(kino, clusters_id) do
     Kino.JS.Live.cast(kino, {:clusters_expansion, clusters_id})
@@ -129,12 +151,17 @@ defmodule Kino.Maplibre do
   effect should be enabled. It uses events and feature states to create the effect.
 
   ## Examples
-  
+
         Kino.Maplibre.add_hover(map, "state-fills")
 
   See [the docs](https://maplibre.org/maplibre-gl-js-docs/api/map/#map#setfeaturestate) for more
   details.
   """
+  @spec add_hover(Maplibre.t(), String.t()) :: Maplibre.t()
+  def add_hover(ml, layer_id) when is_struct(ml, Maplibre) do
+    update_events(ml, "hover", layer_id)
+  end
+
   @spec add_hover(t(), String.t()) :: :ok
   def add_hover(kino, layer_id) do
     Kino.JS.Live.cast(kino, {:add_hover, layer_id})
@@ -144,6 +171,11 @@ defmodule Kino.Maplibre do
   A helper function that adds the event of centering to coordinates when clicking on a symbol.
   Receives the ID of the symbols layer and adds the event to all the symbols present in that layer
   """
+  @spec center_on_click(Maplibre.t(), String.t()) :: Maplibre.t()
+  def center_on_click(ml, symbols_id) when is_struct(ml, Maplibre) do
+    update_events(ml, "center", symbols_id)
+  end
+
   @spec center_on_click(t(), String.t()) :: :ok
   def center_on_click(kino, symbols_id) do
     Kino.JS.Live.cast(kino, {:center_on_click, symbols_id})
@@ -153,6 +185,12 @@ defmodule Kino.Maplibre do
   Adds an image to the style. This image can be displayed on the map like any other icon in the
   style's sprite using its ID
   """
+  @spec add_custom_image(Maplibre.t(), String.t(), String.t()) :: Maplibre.t()
+  def add_custom_image(ml, image_url, image_name) when is_struct(ml, Maplibre) do
+    image = %{url: image_url, name: image_name}
+    update_events(ml, "images", image)
+  end
+
   @spec add_custom_image(t(), String.t(), String.t()) :: :ok
   def add_custom_image(kino, image_url, image_name) do
     Kino.JS.Live.cast(kino, {:add_custom_image, image_url, image_name})
@@ -231,7 +269,7 @@ defmodule Kino.Maplibre do
   def handle_cast({:add_custom_image, image_url, image_name}, ctx) do
     image = %{url: image_url, name: image_name}
     broadcast_event(ctx, "add_custom_image", image)
-    ctx = update(ctx, :images, &[image_name | &1])
+    ctx = update(ctx, :images, &[image | &1])
     {:noreply, ctx}
   end
 
@@ -239,6 +277,11 @@ defmodule Kino.Maplibre do
     jump_to = %{location: location, options: opts}
     broadcast_event(ctx, "jump_to", jump_to)
     {:noreply, ctx}
+  end
+
+  defp update_events(ml, key, value) do
+    ml = if Map.has_key?(ml, :events), do: ml, else: Map.put(ml, :events, %{})
+    update_in(ml.events, fn events -> Map.update(events, key, [value], &[value | &1]) end)
   end
 
   defp normalize_location({lag, lng}), do: [lag, lng]
