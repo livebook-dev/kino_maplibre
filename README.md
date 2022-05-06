@@ -1,6 +1,8 @@
 # KinoMaplibre
 
-**TODO: Add description**
+[Maplibre](https://github.com/cristineguadelupe/maplibre) integration with
+[Kino](https://github.com/livebook-dev/kino) for
+[Livebook](https://github.com/livebook-dev/livebook).
 
 ## Installation
 
