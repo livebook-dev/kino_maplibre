@@ -1,0 +1,424 @@
+# Maps with MapLibre
+
+```elixir
+Mix.install([
+  {:kino, "~> 0.6.1"},
+  {:kino_maplibre, github: "cristineguadelupe/kino_maplibre"},
+  {:maplibre, github: "cristineguadelupe/maplibre"}
+])
+```
+
+## Introduction
+
+To work with maps in Livebook we need two libraries:
+
+* The [`maplibre`](https://github.com/cristineguadelupe/maplibre)
+  package allows us to define our map style specifications
+
+* The [`kino_maplibre`](https://github.com/cristineguadelupe/Kino_maplibre) package instructs Livebook how to render our specifications and also provides some initial support for [Maplibre Evented API](https://maplibre.org/maplibre-gl-js-docs/api/events/#evented)
+
+All the necessary dependencies are already declared in the setup cell.
+
+We will make extensive use of Maplibre's functions, so it's handy to call the module something shorter.
+
+```elixir
+alias Maplibre, as: Ml
+```
+
+## Simple maps
+
+Calling the `Ml.new()` function without any argument will render a simple map with all root properties at their default values and the basic style provided by [Maplibre](https://demotiles.maplibre.org/style.json) that will be automatically loaded for you.
+
+```elixir
+Ml.new()
+```
+
+You can easily override this initial style by declaring your own style using the `:style` option as well as any other root-level properties you wish to configure.
+
+Styles are accepted as `url`, `json` or `Map`.
+
+Even though that's not the most recommended tool, you can start a blank style by passing an empty map to create your style totally from scratch.
+
+```elixir
+terrain_style =
+  "https://api.maptiler.com/maps/hybrid/style.json?key=get_your_own_OpIi9ZULNHzrESv6T2vL"
+
+Ml.new(style: terrain_style, center: {137.9150899566626, 36.25956997955441}, zoom: 9)
+```
+
+```elixir
+street_style =
+  "https://api.maptiler.com/maps/streets/style.json?key=get_your_own_OpIi9ZULNHzrESv6T2vL"
+
+Ml.new(style: street_style, zoom: 2)
+```
+
+## Sources and Layers
+
+Quite succinctly, sources specify the map's data while layers define how this data will be displayed.
+
+> Adding a source isn't enough to make data appear on the map because sources don't contain styling details like color or width. Layers refer to a source and give it a visual representation. This makes it possible to style the same source in different ways, like differentiating between types of roads in a highways layer.
+> 
+> -- <cite>[Sources documentation](https://maplibre.org/maplibre-gl-js-docs/style-spec/sources/)</cite>
+
+> A style's layers property lists all the layers available in that style. The type of layer is specified by the "type" property, and must be one of background, fill, line, symbol, raster, circle, fill-extrusion, heatmap, hillshade.
+> 
+> Except for layers of the background type, each layer needs to refer to a source. Layers take the data that they get from a source, optionally filter features, and then define how those features are styled.
+> 
+> -- <cite>[Layers documentation](https://maplibre.org/maplibre-gl-js-docs/style-spec/layers/)
+
+Sources and layers are the core of a map. For this reason, we have a set of functions to make it straightforward to work with them.
+
+Let's add some coordinate data and use `Ml.add_source()` and `Ml.add_layer()` to render GeoJson lines and polygons.
+
+```elixir
+# For type "Polygon", the "coordinates" member MUST be an array of linear ring coordinate arrays.
+polygon_coordinates = [
+  [
+    {-67.13734351262877, 45.137451890638886},
+    {-66.96466, 44.8097},
+    {-68.03252, 44.3252},
+    {-69.06, 43.98},
+    {-70.11617, 43.68405},
+    {-70.64573401557249, 43.090083319667144},
+    {-70.75102474636725, 43.08003225358635},
+    {-70.79761105007827, 43.21973948828747},
+    {-70.98176001655037, 43.36789581966826},
+    {-70.94416541205806, 43.46633942318431},
+    {-71.08482, 45.3052400000002},
+    {-70.6600225491012, 45.46022288673396},
+    {-70.30495378282376, 45.914794623389355},
+    {-70.00014034695016, 46.69317088478567},
+    {-69.23708614772835, 47.44777598732787},
+    {-68.90478084987546, 47.184794623394396},
+    {-68.23430497910454, 47.35462921812177},
+    {-67.79035274928509, 47.066248887716995},
+    {-67.79141211614706, 45.702585354182816},
+    {-67.13734351262877, 45.137451890638886}
+  ]
+]
+
+line_coordinates = [
+  {-122.48369693756104, 37.83381888486939},
+  {-122.48348236083984, 37.83317489144141},
+  {-122.48339653015138, 37.83270036637107},
+  {-122.48356819152832, 37.832056363179625},
+  {-122.48404026031496, 37.83114119107971},
+  {-122.48404026031496, 37.83049717427869},
+  {-122.48348236083984, 37.829920943955045},
+  {-122.48356819152832, 37.82954808664175},
+  {-122.48507022857666, 37.82944639795659},
+  {-122.48610019683838, 37.82880236636284},
+  {-122.48695850372314, 37.82931081282506},
+  {-122.48700141906738, 37.83080223556934},
+  {-122.48751640319824, 37.83168351665737},
+  {-122.48803138732912, 37.832158048267786},
+  {-122.48888969421387, 37.83297152392784},
+  {-122.48987674713133, 37.83263257682617},
+  {-122.49043464660643, 37.832937629287755},
+  {-122.49125003814696, 37.832429207817725},
+  {-122.49163627624512, 37.832564787218985},
+  {-122.49223709106445, 37.83337825839438},
+  {-122.49378204345702, 37.83368330777276}
+]
+```
+
+We use the `Ml.add_source()` to add and make the data available and the `Ml.add_layer()` to style them and it visible.
+
+```elixir
+Ml.new(center: {-122.486052, 37.830348}, zoom: 15, style: street_style)
+|> Ml.add_source("route",
+  type: :geojson,
+  data: [
+    type: "Feature",
+    geometry: [
+      type: "LineString",
+      coordinates: line_coordinates
+    ]
+  ]
+)
+|> Ml.add_layer(
+  id: "route",
+  type: :line,
+  source: "route",
+  layout: [
+    line_join: "round",
+    line_cap: "round"
+  ],
+  paint: [
+    line_color: "#888",
+    line_width: 8
+  ]
+)
+```
+
+Layers are rendered from the top down following the order they were added. While this solution is ideal for most cases, some layers look better if rendered below the labels. For these cases, use the `Ml.add_layer_below_labels()` function.
+
+```elixir
+Ml.new(center: {-68.13734351262877, 45.137451890638886}, zoom: 5, style: street_style)
+|> Ml.add_source("urban-areas",
+  type: :geojson,
+  data: "https://d2ad6b4ur7yvpq.cloudfront.net/naturalearth-3.3.0/ne_50m_urban_areas.geojson"
+)
+|> Ml.add_source("maine",
+  type: :geojson,
+  data: [
+    type: "Feature",
+    geometry: [
+      type: "Polygon",
+      coordinates: polygon_coordinates
+    ]
+  ]
+)
+|> Ml.add_layer_below_labels(
+  id: "maine",
+  source: "maine",
+  type: :fill,
+  paint: [
+    fill_color: "#088",
+    fill_opacity: 0.5
+  ]
+)
+|> Ml.add_layer_below_labels(
+  id: "urban-areas-fill",
+  type: :fill,
+  source: "urban-areas",
+  paint: [
+    fill_color: "#f08",
+    fill_opacity: 0.4
+  ]
+)
+```
+
+## Expressions
+
+[Expressions](https://maplibre.org/maplibre-gl-js-docs/style-spec/expressions/) are a powerful way to render quite complex maps through only style specifications.
+We can use expressions to define a formula for computing the value for any `layout`, `paint` or `filter` property.
+
+If the layer you want to make more dynamic through expressions already exists on the map, you can use the `Ml.update_layer()` to update the respective layer.
+
+In the following map, we update the `paint` property of the `building` layer so that its colors change according to the zoom level.
+
+```elixir
+Ml.new(
+  center: {-90.73414, 14.55524},
+  zoom: 13,
+  style: "https://api.maptiler.com/maps/basic/style.json?key=get_your_own_OpIi9ZULNHzrESv6T2vL"
+)
+|> Ml.update_layer("building",
+  paint: [
+    fill_color: ["interpolate", ["exponential", 0.5], ["zoom"], 15, "#e2714b", 22, "#eee695"],
+    fill_opacity: ["interpolate", ["exponential", 0.5], ["zoom"], 15, 0, 22, 1]
+  ]
+)
+```
+
+Another great example using only expressions to show the population density of a region.
+
+```elixir
+Ml.new(center: {30.0222, -1.9596}, zoom: 7, style: street_style)
+|> Ml.add_source("rwanda-provinces",
+  type: :geojson,
+  data: "https://maplibre.org/maplibre-gl-js-docs/assets/rwanda-provinces.geojson"
+)
+|> Ml.add_layer_below_labels(
+  id: "rwanda-provinces",
+  type: :fill,
+  source: "rwanda-provinces",
+  paint: [
+    fill_color: [
+      "let",
+      "density",
+      ["/", ["get", "population"], ["get", "sq-km"]],
+      [
+        "interpolate",
+        ["linear"],
+        ["zoom"],
+        8,
+        [
+          "interpolate",
+          ["linear"],
+          ["var", "density"],
+          274,
+          ["to-color", "#edf8e9"],
+          1551,
+          ["to-color", "#006d2c"]
+        ],
+        10,
+        [
+          "interpolate",
+          ["linear"],
+          ["var", "density"],
+          274,
+          ["to-color", "#eff3ff"],
+          1551,
+          ["to-color", "#08519c"]
+        ]
+      ]
+    ],
+    fill_opacity: 0.7
+  ]
+)
+```
+
+## Heatmap
+
+```elixir
+Ml.new(
+  center: {-120, 50},
+  zoom: 2,
+  style: "https://api.maptiler.com/maps/basic/style.json?key=get_your_own_OpIi9ZULNHzrESv6T2vL"
+)
+|> Ml.add_source("earthquakes",
+  type: :geojson,
+  data: "https://maplibre.org/maplibre-gl-js-docs/assets/earthquakes.geojson"
+)
+|> Ml.add_layer_below_labels(
+  id: "earthquakes-heat",
+  type: :heatmap,
+  source: "earthquakes",
+  maxzoom: 9,
+  paint: [
+    heatmap_weight: ["interpolate", ["linear"], ["get", "mag"], 0, 0, 6, 1],
+    heatmap_intensity: ["interpolate", ["linear"], ["zoom"], 0, 1, 9, 3],
+    heatmap_color: [
+      "interpolate",
+      ["linear"],
+      ["heatmap-density"],
+      0,
+      "rgba(33,102,172,0)",
+      0.2,
+      "rgb(103,169,207)",
+      0.4,
+      "rgb(209,229,240)",
+      0.6,
+      "rgb(253,219,199)",
+      0.8,
+      "rgb(239,138,98)",
+      1,
+      "rgb(178,24,43)"
+    ],
+    heatmap_radius: ["interpolate", ["linear"], ["zoom"], 0, 2, 9, 20],
+    heatmap_opacity: ["interpolate", ["linear"], ["zoom"], 7, 1, 9, 0]
+  ]
+)
+```
+
+## Interactive maps
+
+As said before, the `Maplibre` package covers all the style specification, but for the interactivity of the [Evented api](https://maplibre.org/maplibre-gl-js-docs/api/events/#evented) we need `Kino.Maplibre`.
+
+To use it we need two steps:
+
+* Bind the map into a variable
+* Call `Kino.Maplibre.new()` at the end
+
+`Kino.Maplibre` does not currently cover everything the event API can offer, but let's see what we already support.
+
+<!-- livebook:{"break_markdown":true} -->
+
+### Add a simple marker
+
+```elixir
+map =
+  Ml.new(center: {-68.13734351262877, 45.137451890638886}, zoom: 3)
+  |> Kino.Maplibre.new()
+```
+
+```elixir
+Kino.Maplibre.add_marker(map, {-69, 50})
+Kino.Maplibre.add_marker(map, {-68, 45}, color: "red", draggable: true)
+```
+
+### Add navigation controls
+
+```elixir
+Kino.Maplibre.add_nav_controls(map, show_compass: false)
+Kino.Maplibre.add_nav_controls(map, show_zoom: false, position: "top-left")
+```
+
+### Add hover effect
+
+```elixir
+map =
+  Ml.new(center: {-100.486052, 37.830348}, zoom: 3, style: street_style)
+  |> Ml.add_source("states",
+    type: :geojson,
+    data: "https://maplibre.org/maplibre-gl-js-docs/assets/us_states.geojson"
+  )
+  |> Ml.add_layer_below_labels(
+    id: "state-fills",
+    type: :fill,
+    source: "states",
+    paint: [
+      fill_color: "#627BC1",
+      fill_opacity: ["case", ["boolean", ["feature-state", "hover"], false], 1, 0.5]
+    ]
+  )
+  |> Ml.add_layer_below_labels(
+    id: "state-borders",
+    type: :line,
+    source: "states",
+    paint: [
+      line_color: "#627BC1",
+      line_width: 2
+    ]
+  )
+  |> Kino.Maplibre.new()
+```
+
+```elixir
+Kino.Maplibre.add_hover(map, "state-fills")
+```
+
+### Clusters expansion on click
+
+```elixir
+map =
+  Ml.new(style: street_style)
+  |> Ml.add_source("earthquakes",
+    type: :geojson,
+    data: "https://maplibre.org/maplibre-gl-js-docs/assets/earthquakes.geojson",
+    cluster: true,
+    cluster_max_zoom: 14,
+    cluster_radius: 50
+  )
+  |> Ml.add_layer(
+    id: "clusters",
+    type: :circle,
+    source: "earthquakes",
+    filter: ["has", "point_count"],
+    paint: [
+      circle_color: ["step", ["get", "point_count"], "#51bbd6", 100, "#f1f075", 750, "#f28cb1"],
+      circle_radius: ["step", ["get", "point_count"], 20, 100, 30, 750, 40]
+    ]
+  )
+  |> Ml.add_layer(
+    id: "cluster-count",
+    type: :symbol,
+    source: "earthquakes",
+    filter: ["has", "point_count"],
+    layout: [
+      text_field: "{point_count_abbreviated}",
+      text_font: ["DIN Offc Pro Medium", "Arial Unicode MS Bold"],
+      text_size: 12
+    ]
+  )
+  |> Ml.add_layer(
+    id: "unclustered-point",
+    type: :circle,
+    source: "earthquakes",
+    filter: ["!", ["has", "point_count"]],
+    paint: [
+      circle_color: "#11b4da",
+      circle_radius: 4,
+      circle_stroke_width: 1,
+      circle_stroke_color: "#fff"
+    ]
+  )
+  |> Kino.Maplibre.new()
+```
+
+```elixir
+Kino.Maplibre.clusters_expansion(map, "clusters")
+```

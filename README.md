@@ -4,18 +4,12 @@
 
 ## Installation
 
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `kino_maplibre` to your list of dependencies in `mix.exs`:
+To bring KinoMaplibre to Livebook all you need to do is Mix.install/2:
 
 ```elixir
-def deps do
-  [
-    {:kino_maplibre, "~> 0.1.0"}
-  ]
-end
+Mix.install([
+  {:kino_maplibre, "~> 0.1.0"}
+])
 ```
 
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at <https://hexdocs.pm/kino_maplibre>.
-
+## License

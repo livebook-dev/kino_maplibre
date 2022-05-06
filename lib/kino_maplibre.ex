@@ -1,18 +1,5 @@
-defmodule KinoMaplibre do
-  @moduledoc """
-  Documentation for `KinoMaplibre`.
-  """
-
-  @doc """
-  Hello world.
-
-  ## Examples
-
-      iex> KinoMaplibre.hello()
-      :world
-
-  """
-  def hello do
-    :world
+defimpl Kino.Render, for: Maplibre do
+  def to_livebook(ml) do
+    ml |> Kino.Maplibre.static() |> Kino.Render.to_livebook()
   end
 end

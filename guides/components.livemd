@@ -1,0 +1,50 @@
+# Components
+
+```elixir
+Mix.install([
+  {:maplibre, "~> 0.1.0"},
+  {:kino_maplibre, "~> 0.1.0"}
+])
+
+alias Maplibre, as: Ml
+```
+
+## Kinos
+
+### Maplibre
+
+This integration automatically renders the `Maplibre` struct as a map:
+
+```elixir
+Ml.new(
+  center: {-90.73414, 14.55524},
+  zoom: 13,
+  style: "https://api.maptiler.com/maps/basic/style.json?key=get_your_own_OpIi9ZULNHzrESv6T2vL"
+)
+|> Ml.update_layer("building",
+  paint: [
+    fill_color: ["interpolate", ["exponential", 0.5], ["zoom"], 15, "#e2714b", 22, "#eee695"],
+    fill_opacity: ["interpolate", ["exponential", 0.5], ["zoom"], 15, 0, 22, 1]
+  ]
+)
+```
+
+### Kino.Maplibre
+
+`Kino.Maplibre` allows you to wrap a map and then then adds an initial support for the [Evented](https://maplibre.org/maplibre-gl-js-docs/api/events/#evented) API to update the map.
+
+```elixir
+map =
+  Ml.new(center: {-68.13734351262877, 45.137451890638886}, zoom: 3)
+  |> Kino.Maplibre.new()
+```
+
+```elixir
+Kino.Maplibre.add_marker(map, {-69, 50})
+Kino.Maplibre.add_marker(map, {-68, 45}, color: "red", draggable: true)
+```
+
+```elixir
+Kino.Maplibre.add_nav_controls(map, show_compass: false)
+Kino.Maplibre.add_nav_controls(map, show_zoom: false, position: "top-left")
+```
