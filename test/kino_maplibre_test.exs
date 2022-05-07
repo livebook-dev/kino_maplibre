@@ -1,3 +1,3 @@
-defmodule KinoMaplibreTest do
+defmodule KinoMapLibreTest do
   use ExUnit.Case
 end

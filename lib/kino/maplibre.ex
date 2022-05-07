@@ -1,6 +1,6 @@
-defmodule Kino.Maplibre do
+defmodule Kino.MapLibre do
   @moduledoc """
-  This kino allows rendering a regular Maplibre map and then adds an initial support for the
+  This kino allows rendering a regular MapLibre map and then adds an initial support for the
   [Evented](https://maplibre.org/maplibre-gl-js-docs/api/events/#evented) API to update the map
   with event capabilities.
 
@@ -8,10 +8,10 @@ defmodule Kino.Maplibre do
 
       map =
         Ml.new(center: {-68.13734351262877, 45.137451890638886}, zoom: 3)
-        |> Kino.Maplibre.new()
+        |> Kino.MapLibre.new()
 
-      Kino.Maplibre.add_marker(map, {-68, 45}, color: "red", draggable: true)
-      Kino.Maplibre.add_nav_controls(map, show_compass: false)
+      Kino.MapLibre.add_marker(map, {-68, 45}, color: "red", draggable: true)
+      Kino.MapLibre.add_nav_controls(map, show_compass: false)
   """
 
   use Kino.JS, assets_path: "lib/assets/maplibre"
@@ -24,10 +24,10 @@ defmodule Kino.Maplibre do
   @type location :: {number(), number()}
 
   @doc """
-  Creates a new kino with the given Maplibre style.
+  Creates a new kino with the given MapLibre style.
   """
-  @spec new(Maplibre.t()) :: t()
-  def new(%Maplibre{} = ml) do
+  @spec new(MapLibre.t()) :: t()
+  def new(%MapLibre{} = ml) do
     Kino.JS.Live.new(__MODULE__, ml)
   end
 
@@ -38,8 +38,8 @@ defmodule Kino.Maplibre do
     Kino.JS.new(__MODULE__, data, export_info_string: "maplibre")
   end
 
-  def static(%Maplibre{} = ml) do
-    data = %{spec: Maplibre.to_spec(ml)}
+  def static(%MapLibre{} = ml) do
+    data = %{spec: MapLibre.to_spec(ml)}
 
     Kino.JS.new(__MODULE__, data, export_info_string: "maplibre", export_key: :spec)
   end
@@ -86,15 +86,15 @@ defmodule Kino.Maplibre do
 
     See [the docs](https://maplibre.org/maplibre-gl-js-docs/api/markers/#marker) for more details.
   """
+  @spec add_marker(t() | MapLibre.t() | %__MODULE__{}, location(), keyword()) ::
+          :ok | %__MODULE__{}
   def add_marker(map, location, opts \\ [])
 
-  @spec add_marker(Maplibre.t() | %__MODULE__{}, location(), keyword()) :: %__MODULE__{}
   def add_marker(%_{} = ml, location, opts) do
     marker = %{location: normalize_location(location), options: normalize_opts(opts)}
     update_events(ml, "markers", marker)
   end
 
-  @spec add_marker(t(), location(), keyword()) :: :ok
   def add_marker(kino, location, opts) do
     Kino.JS.Live.cast(kino, {:add_marker, normalize_location(location), normalize_opts(opts)})
   end
@@ -120,19 +120,18 @@ defmodule Kino.Maplibre do
 
   ## Examples
 
-        Kino.Maplibre.add_nav_controls(map, show_compass: false)
-        Kino.Maplibre.add_nav_controls(map, show_zoom: false, position: "top-left")
+        Kino.MapLibre.add_nav_controls(map, show_compass: false)
+        Kino.MapLibre.add_nav_controls(map, show_zoom: false, position: "top-left")
   """
+  @spec add_nav_controls(t() | MapLibre.t() | %__MODULE__{}, keyword()) :: :ok | %__MODULE__{}
   def add_nav_controls(map, opts \\ [])
 
-  @spec add_nav_controls(Maplibre.t() | %__MODULE__{}, keyword()) :: %__MODULE__{}
   def add_nav_controls(%_{} = ml, opts) do
     position = Keyword.get(opts, :position, "top-right")
     control = %{position: position, options: normalize_opts(opts)}
     update_events(ml, "controls", control)
   end
 
-  @spec add_nav_controls(t(), keyword()) :: :ok
   def add_nav_controls(kino, opts) do
     position = Keyword.get(opts, :position, "top-right")
     Kino.JS.Live.cast(kino, {:add_nav_controls, position, normalize_opts(opts)})
@@ -142,14 +141,13 @@ defmodule Kino.Maplibre do
   A helper function to allow inspect a cluster on click. Receives the ID of the clusters layer
   ## Examples
 
-        Kino.Maplibre.clusters_expansion(map, "earthquakes-clusters")
+        Kino.MapLibre.clusters_expansion(map, "earthquakes-clusters")
   """
-  @spec clusters_expansion(Maplibre.t() | %__MODULE__{}, String.t()) :: %__MODULE__{}
-  def clusters_expansion(%Maplibre{} = ml, clusters_id) do
+  @spec(clusters_expansion(t() | MapLibre.t() | %__MODULE__{}, String.t()) :: :ok, %__MODULE__{})
+  def clusters_expansion(%MapLibre{} = ml, clusters_id) do
     update_events(ml, "clusters", clusters_id)
   end
 
-  @spec clusters_expansion(t(), String.t()) :: :ok
   def clusters_expansion(kino, clusters_id) do
     Kino.JS.Live.cast(kino, {:clusters_expansion, clusters_id})
   end
@@ -160,17 +158,16 @@ defmodule Kino.Maplibre do
 
   ## Examples
 
-        Kino.Maplibre.add_hover(map, "state-fills")
+        Kino.MapLibre.add_hover(map, "state-fills")
 
   See [the docs](https://maplibre.org/maplibre-gl-js-docs/api/map/#map#setfeaturestate) for more
   details.
   """
-  @spec add_hover(Maplibre.t() | %__MODULE__{}, String.t()) :: %__MODULE__{}
+  @spec add_hover(t() | MapLibre.t() | %__MODULE__{}, String.t()) :: :ok | %__MODULE__{}
   def add_hover(%_{} = ml, layer_id) do
     update_events(ml, "hover", layer_id)
   end
 
-  @spec add_hover(t(), String.t()) :: :ok
   def add_hover(kino, layer_id) do
     Kino.JS.Live.cast(kino, {:add_hover, layer_id})
   end
@@ -179,12 +176,11 @@ defmodule Kino.Maplibre do
   A helper function that adds the event of centering to coordinates when clicking on a symbol.
   Receives the ID of the symbols layer and adds the event to all the symbols present in that layer
   """
-  @spec center_on_click(Maplibre.t() | %__MODULE__{}, String.t()) :: %__MODULE__{}
+  @spec center_on_click(t() | MapLibre.t() | %__MODULE__{}, String.t()) :: :ok | %__MODULE__{}
   def center_on_click(%_{} = ml, symbols_id) do
     update_events(ml, "center", symbols_id)
   end
 
-  @spec center_on_click(t(), String.t()) :: :ok
   def center_on_click(kino, symbols_id) do
     Kino.JS.Live.cast(kino, {:center_on_click, symbols_id})
   end
@@ -193,13 +189,13 @@ defmodule Kino.Maplibre do
   Adds an image to the style. This image can be displayed on the map like any other icon in the
   style's sprite using its ID
   """
-  @spec add_custom_image(Maplibre.t() | %__MODULE__{}, String.t(), String.t()) :: %__MODULE__{}
+  @spec add_custom_image(t() | MapLibre.t() | %__MODULE__{}, String.t(), String.t()) ::
+          :ok | %__MODULE__{}
   def add_custom_image(%_{} = ml, image_url, image_name) do
     image = %{url: image_url, name: image_name}
     update_events(ml, "images", image)
   end
 
-  @spec add_custom_image(t(), String.t(), String.t()) :: :ok
   def add_custom_image(kino, image_url, image_name) do
     Kino.JS.Live.cast(kino, {:add_custom_image, image_url, image_name})
   end
@@ -229,7 +225,7 @@ defmodule Kino.Maplibre do
   @impl true
   def handle_connect(ctx) do
     data = %{
-      spec: Maplibre.to_spec(ctx.assigns.ml),
+      spec: MapLibre.to_spec(ctx.assigns.ml),
       markers: ctx.assigns.markers,
       clusters: ctx.assigns.clusters,
       controls: ctx.assigns.controls,
@@ -287,7 +283,7 @@ defmodule Kino.Maplibre do
     {:noreply, ctx}
   end
 
-  defp update_events(%Maplibre{} = ml, key, value) do
+  defp update_events(%MapLibre{} = ml, key, value) do
     ml = struct(__MODULE__, Map.from_struct(ml))
     update_in(ml.events, fn events -> Map.update(events, key, [value], &[value | &1]) end)
   end

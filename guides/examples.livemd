@@ -15,19 +15,19 @@ To work with maps in Livebook we need two libraries:
 * The [`maplibre`](https://github.com/cristineguadelupe/maplibre)
   package allows us to define our map style specifications
 
-* The [`kino_maplibre`](https://github.com/cristineguadelupe/Kino_maplibre) package instructs Livebook how to render our specifications and also provides some initial support for [Maplibre Evented API](https://maplibre.org/maplibre-gl-js-docs/api/events/#evented)
+* The [`kino_maplibre`](https://github.com/cristineguadelupe/Kino_maplibre) package instructs Livebook how to render our specifications and also provides some initial support for [MapLibre Evented API](https://maplibre.org/maplibre-gl-js-docs/api/events/#evented)
 
 All the necessary dependencies are already declared in the setup cell.
 
-We will make extensive use of Maplibre's functions, so it's handy to call the module something shorter.
+We will make extensive use of MapLibre's functions, so it's handy to call the module something shorter.
 
 ```elixir
-alias Maplibre, as: Ml
+alias MapLibre, as: Ml
 ```
 
 ## Simple maps
 
-Calling the `Ml.new()` function without any argument will render a simple map with all root properties at their default values and the basic style provided by [Maplibre](https://demotiles.maplibre.org/style.json) that will be automatically loaded for you.
+Calling the `Ml.new()` function without any argument will render a simple map with all root properties at their default values and the basic style provided by [MapLibre](https://demotiles.maplibre.org/style.json) that will be automatically loaded for you.
 
 ```elixir
 Ml.new()
@@ -58,13 +58,13 @@ Ml.new(style: street_style, zoom: 2)
 Quite succinctly, sources specify the map's data while layers define how this data will be displayed.
 
 > Adding a source isn't enough to make data appear on the map because sources don't contain styling details like color or width. Layers refer to a source and give it a visual representation. This makes it possible to style the same source in different ways, like differentiating between types of roads in a highways layer.
-> 
+>
 > -- <cite>[Sources documentation](https://maplibre.org/maplibre-gl-js-docs/style-spec/sources/)</cite>
 
 > A style's layers property lists all the layers available in that style. The type of layer is specified by the "type" property, and must be one of background, fill, line, symbol, raster, circle, fill-extrusion, heatmap, hillshade.
-> 
+>
 > Except for layers of the background type, each layer needs to refer to a source. Layers take the data that they get from a source, optionally filter features, and then define how those features are styled.
-> 
+>
 > -- <cite>[Layers documentation](https://maplibre.org/maplibre-gl-js-docs/style-spec/layers/)
 
 Sources and layers are the core of a map. For this reason, we have a set of functions to make it straightforward to work with them.
@@ -306,14 +306,14 @@ Ml.new(
 
 ## Interactive maps
 
-As said before, the `Maplibre` package covers all the style specification, but for the interactivity of the [Evented api](https://maplibre.org/maplibre-gl-js-docs/api/events/#evented) we need `Kino.Maplibre`.
+As said before, the `MapLibre` package covers all the style specification, but for the interactivity of the [Evented api](https://maplibre.org/maplibre-gl-js-docs/api/events/#evented) we need `Kino.MapLibre`.
 
 To use it we need two steps:
 
 * Bind the map into a variable
-* Call `Kino.Maplibre.new()` at the end
+* Call `Kino.MapLibre.new()` at the end
 
-`Kino.Maplibre` does not currently cover everything the event API can offer, but let's see what we already support.
+`Kino.MapLibre` does not currently cover everything the event API can offer, but let's see what we already support.
 
 <!-- livebook:{"break_markdown":true} -->
 
@@ -322,19 +322,19 @@ To use it we need two steps:
 ```elixir
 map =
   Ml.new(center: {-68.13734351262877, 45.137451890638886}, zoom: 3)
-  |> Kino.Maplibre.new()
+  |> Kino.MapLibre.new()
 ```
 
 ```elixir
-Kino.Maplibre.add_marker(map, {-69, 50})
-Kino.Maplibre.add_marker(map, {-68, 45}, color: "red", draggable: true)
+Kino.MapLibre.add_marker(map, {-69, 50})
+Kino.MapLibre.add_marker(map, {-68, 45}, color: "red", draggable: true)
 ```
 
 ### Add navigation controls
 
 ```elixir
-Kino.Maplibre.add_nav_controls(map, show_compass: false)
-Kino.Maplibre.add_nav_controls(map, show_zoom: false, position: "top-left")
+Kino.MapLibre.add_nav_controls(map, show_compass: false)
+Kino.MapLibre.add_nav_controls(map, show_zoom: false, position: "top-left")
 ```
 
 ### Add hover effect
@@ -364,11 +364,11 @@ map =
       line_width: 2
     ]
   )
-  |> Kino.Maplibre.new()
+  |> Kino.MapLibre.new()
 ```
 
 ```elixir
-Kino.Maplibre.add_hover(map, "state-fills")
+Kino.MapLibre.add_hover(map, "state-fills")
 ```
 
 ### Clusters expansion on click
@@ -416,9 +416,9 @@ map =
       circle_stroke_color: "#fff"
     ]
   )
-  |> Kino.Maplibre.new()
+  |> Kino.MapLibre.new()
 ```
 
 ```elixir
-Kino.Maplibre.clusters_expansion(map, "clusters")
+Kino.MapLibre.clusters_expansion(map, "clusters")
 ```

@@ -1,12 +1,12 @@
-# KinoMaplibre
+# KinoMapLibre
 
-[Maplibre](https://github.com/cristineguadelupe/maplibre) integration with
+[MapLibre](https://github.com/cristineguadelupe/maplibre) integration with
 [Kino](https://github.com/livebook-dev/kino) for
 [Livebook](https://github.com/livebook-dev/livebook).
 
 ## Installation
 
-To bring KinoMaplibre to Livebook all you need to do is Mix.install/2:
+To bring KinoMapLibre to Livebook all you need to do is Mix.install/2:
 
 ```elixir
 Mix.install([
