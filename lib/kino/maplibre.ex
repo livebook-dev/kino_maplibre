@@ -90,13 +90,13 @@ defmodule Kino.MapLibre do
           :ok | %__MODULE__{}
   def add_marker(map, location, opts \\ [])
 
+  def add_marker(%Kino.JS.Live{} = kino, location, opts) do
+    Kino.JS.Live.cast(kino, {:add_marker, normalize_location(location), normalize_opts(opts)})
+  end
+
   def add_marker(%_{} = ml, location, opts) do
     marker = %{location: normalize_location(location), options: normalize_opts(opts)}
     update_events(ml, "markers", marker)
-  end
-
-  def add_marker(kino, location, opts) do
-    Kino.JS.Live.cast(kino, {:add_marker, normalize_location(location), normalize_opts(opts)})
   end
 
   @doc """
@@ -126,15 +126,15 @@ defmodule Kino.MapLibre do
   @spec add_nav_controls(t() | MapLibre.t() | %__MODULE__{}, keyword()) :: :ok | %__MODULE__{}
   def add_nav_controls(map, opts \\ [])
 
+  def add_nav_controls(%Kino.JS.Live{} = kino, opts) do
+    position = Keyword.get(opts, :position, "top-right")
+    Kino.JS.Live.cast(kino, {:add_nav_controls, position, normalize_opts(opts)})
+  end
+
   def add_nav_controls(%_{} = ml, opts) do
     position = Keyword.get(opts, :position, "top-right")
     control = %{position: position, options: normalize_opts(opts)}
     update_events(ml, "controls", control)
-  end
-
-  def add_nav_controls(kino, opts) do
-    position = Keyword.get(opts, :position, "top-right")
-    Kino.JS.Live.cast(kino, {:add_nav_controls, position, normalize_opts(opts)})
   end
 
   @doc """
@@ -144,12 +144,12 @@ defmodule Kino.MapLibre do
         Kino.MapLibre.clusters_expansion(map, "earthquakes-clusters")
   """
   @spec(clusters_expansion(t() | MapLibre.t() | %__MODULE__{}, String.t()) :: :ok, %__MODULE__{})
-  def clusters_expansion(%MapLibre{} = ml, clusters_id) do
-    update_events(ml, "clusters", clusters_id)
+  def clusters_expansion(%Kino.JS.Live{} = kino, clusters_id) do
+    Kino.JS.Live.cast(kino, {:clusters_expansion, clusters_id})
   end
 
-  def clusters_expansion(kino, clusters_id) do
-    Kino.JS.Live.cast(kino, {:clusters_expansion, clusters_id})
+  def clusters_expansion(%MapLibre{} = ml, clusters_id) do
+    update_events(ml, "clusters", clusters_id)
   end
 
   @doc """
@@ -164,12 +164,12 @@ defmodule Kino.MapLibre do
   details.
   """
   @spec add_hover(t() | MapLibre.t() | %__MODULE__{}, String.t()) :: :ok | %__MODULE__{}
-  def add_hover(%_{} = ml, layer_id) do
-    update_events(ml, "hover", layer_id)
+  def add_hover(%Kino.JS.Live{} = kino, layer_id) do
+    Kino.JS.Live.cast(kino, {:add_hover, layer_id})
   end
 
-  def add_hover(kino, layer_id) do
-    Kino.JS.Live.cast(kino, {:add_hover, layer_id})
+  def add_hover(%_{} = ml, layer_id) do
+    update_events(ml, "hover", layer_id)
   end
 
   @doc """
@@ -177,12 +177,12 @@ defmodule Kino.MapLibre do
   Receives the ID of the symbols layer and adds the event to all the symbols present in that layer
   """
   @spec center_on_click(t() | MapLibre.t() | %__MODULE__{}, String.t()) :: :ok | %__MODULE__{}
-  def center_on_click(%_{} = ml, symbols_id) do
-    update_events(ml, "center", symbols_id)
+  def center_on_click(%Kino.JS.Live{} = kino, symbols_id) do
+    Kino.JS.Live.cast(kino, {:center_on_click, symbols_id})
   end
 
-  def center_on_click(kino, symbols_id) do
-    Kino.JS.Live.cast(kino, {:center_on_click, symbols_id})
+  def center_on_click(%_{} = ml, symbols_id) do
+    update_events(ml, "center", symbols_id)
   end
 
   @doc """
@@ -191,13 +191,13 @@ defmodule Kino.MapLibre do
   """
   @spec add_custom_image(t() | MapLibre.t() | %__MODULE__{}, String.t(), String.t()) ::
           :ok | %__MODULE__{}
+  def add_custom_image(%Kino.JS.Live{} = kino, image_url, image_name) do
+    Kino.JS.Live.cast(kino, {:add_custom_image, image_url, image_name})
+  end
+
   def add_custom_image(%_{} = ml, image_url, image_name) do
     image = %{url: image_url, name: image_name}
     update_events(ml, "images", image)
-  end
-
-  def add_custom_image(kino, image_url, image_name) do
-    Kino.JS.Live.cast(kino, {:add_custom_image, image_url, image_name})
   end
 
   @doc """
