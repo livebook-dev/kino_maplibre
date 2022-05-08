@@ -1,17 +1,29 @@
 defmodule Kino.MapLibre do
   @moduledoc """
-  This kino allows rendering a regular MapLibre map and then adds an initial support for the
+  This Kino allows rendering a regular MapLibre map and then adds an initial support for the
   [Evented](https://maplibre.org/maplibre-gl-js-docs/api/events/#evented) API to update the map
   with event capabilities.
+
+  There are two types of maps: static and dynamic. Essentially, a dynamic map can be updated on
+  the fly without having to be re-evaluated. To make a map dynamic you need to wrap it in `Kino.MapLibre.new/1`
+
+  All functions are available for both map types.
 
   ## Examples
 
       map =
         Ml.new(center: {-68.13734351262877, 45.137451890638886}, zoom: 3)
+        # This makes the map dynamic
         |> Kino.MapLibre.new()
 
+      # These markers will be added with no need to re-evaluate the map
       Kino.MapLibre.add_marker(map, {-68, 45}, color: "red", draggable: true)
-      Kino.MapLibre.add_nav_controls(map, show_compass: false)
+      Kino.MapLibre.add_marker(map, {-69, 50})
+
+      # This is a static map and the markers will be added on evaluation
+      Ml.new(center: {-68.13734351262877, 45.137451890638886}, zoom: 3)
+      |> Kino.MapLibre.add_marker({-68, 45}, color: "red", draggable: true)
+      |> Kino.MapLibre.add_marker({-69, 50})
   """
 
   use Kino.JS, assets_path: "lib/assets/maplibre"
