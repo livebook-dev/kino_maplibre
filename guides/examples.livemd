@@ -421,3 +421,20 @@ When we evaluate the cell below, the marker will be added without the need to re
 # Change the marker color and reevaluate only this cell
 Kino.MapLibre.add_marker(map, {-68, 45}, color: "purple", draggable: true)
 ```
+
+You can make a static map dynamic at any moment wrapping it in `Kino.MapLibre.new/1`
+
+```elixir
+map =
+  Ml.new(center: {-68.13734351262877, 45.137451890638886}, zoom: 3)
+  # These markers will be added on evaluation
+  |> Kino.MapLibre.add_marker({-68, 45}, color: "red", draggable: true)
+  |> Kino.MapLibre.add_marker({-69, 50})
+  # This makes the map dynamic
+  |> Kino.MapLibre.new()
+```
+
+```elixir
+# This navigation controls will be added on the fly
+Kino.MapLibre.add_nav_controls(map)
+```
