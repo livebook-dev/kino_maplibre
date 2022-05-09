@@ -58,13 +58,13 @@ Ml.new(style: street_style, zoom: 2)
 Quite succinctly, sources specify the map's data while layers define how this data will be displayed.
 
 > Adding a source isn't enough to make data appear on the map because sources don't contain styling details like color or width. Layers refer to a source and give it a visual representation. This makes it possible to style the same source in different ways, like differentiating between types of roads in a highways layer.
->
+> 
 > -- <cite>[Sources documentation](https://maplibre.org/maplibre-gl-js-docs/style-spec/sources/)</cite>
 
 > A style's layers property lists all the layers available in that style. The type of layer is specified by the "type" property, and must be one of background, fill, line, symbol, raster, circle, fill-extrusion, heatmap, hillshade.
->
+> 
 > Except for layers of the background type, each layer needs to refer to a source. Layers take the data that they get from a source, optionally filter features, and then define how those features are styled.
->
+> 
 > -- <cite>[Layers documentation](https://maplibre.org/maplibre-gl-js-docs/style-spec/layers/)
 
 Sources and layers are the core of a map. For this reason, we have a set of functions to make it straightforward to work with them.
@@ -308,16 +308,104 @@ Ml.new(
 
 As said before, the `MapLibre` package covers all the style specification, but for the interactivity of the [Evented api](https://maplibre.org/maplibre-gl-js-docs/api/events/#evented) we need `Kino.MapLibre`.
 
-To use it we need two steps:
+`Kino.MapLibre` supports two types of maps: static and dynamic. Essentially, a dynamic map can be updated on
+  the fly without having to be re-evaluated. To make a map dynamic you need to wrap it in `Kino.MapLibre.new/1`
 
-* Bind the map into a variable
-* Call `Kino.MapLibre.new()` at the end
+Static maps will cover most use cases, and all `Kino.MapLibre` functions are available for both map types.
 
-`Kino.MapLibre` does not currently cover everything the event API can offer, but let's see what we already support.
+`Kino.MapLibre` does not currently cover everything the evented API can offer, but let's see what we already support.
 
 <!-- livebook:{"break_markdown":true} -->
 
-### Add a simple marker
+### Simple markers and navigation controls
+
+```elixir
+Ml.new(center: {-68.13734351262877, 45.137451890638886}, zoom: 3)
+|> Kino.MapLibre.add_marker({-69, 50})
+|> Kino.MapLibre.add_marker({-68, 45}, color: "red", draggable: true)
+|> Kino.MapLibre.add_nav_controls(show_compass: false)
+|> Kino.MapLibre.add_nav_controls(show_zoom: false, position: "top-left")
+```
+
+### Hover effect
+
+```elixir
+Ml.new(center: {-100.486052, 37.830348}, zoom: 3, style: street_style)
+|> Ml.add_source("states",
+  type: :geojson,
+  data: "https://maplibre.org/maplibre-gl-js-docs/assets/us_states.geojson"
+)
+|> Ml.add_layer_below_labels(
+  id: "state-fills",
+  type: :fill,
+  source: "states",
+  paint: [
+    fill_color: "#627BC1",
+    fill_opacity: ["case", ["boolean", ["feature-state", "hover"], false], 1, 0.5]
+  ]
+)
+|> Ml.add_layer_below_labels(
+  id: "state-borders",
+  type: :line,
+  source: "states",
+  paint: [
+    line_color: "#627BC1",
+    line_width: 2
+  ]
+)
+|> Kino.MapLibre.add_hover("state-fills")
+```
+
+### Clusters expansion on click
+
+```elixir
+Ml.new(style: street_style)
+|> Ml.add_source("earthquakes",
+  type: :geojson,
+  data: "https://maplibre.org/maplibre-gl-js-docs/assets/earthquakes.geojson",
+  cluster: true,
+  cluster_max_zoom: 14,
+  cluster_radius: 50
+)
+|> Ml.add_layer(
+  id: "clusters",
+  type: :circle,
+  source: "earthquakes",
+  filter: ["has", "point_count"],
+  paint: [
+    circle_color: ["step", ["get", "point_count"], "#51bbd6", 100, "#f1f075", 750, "#f28cb1"],
+    circle_radius: ["step", ["get", "point_count"], 20, 100, 30, 750, 40]
+  ]
+)
+|> Ml.add_layer(
+  id: "cluster-count",
+  type: :symbol,
+  source: "earthquakes",
+  filter: ["has", "point_count"],
+  layout: [
+    text_field: "{point_count_abbreviated}",
+    text_font: ["DIN Offc Pro Medium", "Arial Unicode MS Bold"],
+    text_size: 12
+  ]
+)
+|> Ml.add_layer(
+  id: "unclustered-point",
+  type: :circle,
+  source: "earthquakes",
+  filter: ["!", ["has", "point_count"]],
+  paint: [
+    circle_color: "#11b4da",
+    circle_radius: 4,
+    circle_stroke_width: 1,
+    circle_stroke_color: "#fff"
+  ]
+)
+|> Kino.MapLibre.clusters_expansion("clusters")
+```
+
+### Dynamic maps
+
+As said before, a dynamic map can be updated without re-evaluating. Let's see how it works!
 
 ```elixir
 map =
@@ -325,100 +413,11 @@ map =
   |> Kino.MapLibre.new()
 ```
 
-```elixir
-Kino.MapLibre.add_marker(map, {-69, 50})
-Kino.MapLibre.add_marker(map, {-68, 45}, color: "red", draggable: true)
-```
+We have wrapped the above map in `Kino.MapLibre.new/1` which makes it dynamic, so now we can update the map on the fly.
 
-### Add navigation controls
+When we evaluate the cell below, the marker will be added without the need to re-evaluate the map cell itself.
 
 ```elixir
-Kino.MapLibre.add_nav_controls(map, show_compass: false)
-Kino.MapLibre.add_nav_controls(map, show_zoom: false, position: "top-left")
-```
-
-### Add hover effect
-
-```elixir
-map =
-  Ml.new(center: {-100.486052, 37.830348}, zoom: 3, style: street_style)
-  |> Ml.add_source("states",
-    type: :geojson,
-    data: "https://maplibre.org/maplibre-gl-js-docs/assets/us_states.geojson"
-  )
-  |> Ml.add_layer_below_labels(
-    id: "state-fills",
-    type: :fill,
-    source: "states",
-    paint: [
-      fill_color: "#627BC1",
-      fill_opacity: ["case", ["boolean", ["feature-state", "hover"], false], 1, 0.5]
-    ]
-  )
-  |> Ml.add_layer_below_labels(
-    id: "state-borders",
-    type: :line,
-    source: "states",
-    paint: [
-      line_color: "#627BC1",
-      line_width: 2
-    ]
-  )
-  |> Kino.MapLibre.new()
-```
-
-```elixir
-Kino.MapLibre.add_hover(map, "state-fills")
-```
-
-### Clusters expansion on click
-
-```elixir
-map =
-  Ml.new(style: street_style)
-  |> Ml.add_source("earthquakes",
-    type: :geojson,
-    data: "https://maplibre.org/maplibre-gl-js-docs/assets/earthquakes.geojson",
-    cluster: true,
-    cluster_max_zoom: 14,
-    cluster_radius: 50
-  )
-  |> Ml.add_layer(
-    id: "clusters",
-    type: :circle,
-    source: "earthquakes",
-    filter: ["has", "point_count"],
-    paint: [
-      circle_color: ["step", ["get", "point_count"], "#51bbd6", 100, "#f1f075", 750, "#f28cb1"],
-      circle_radius: ["step", ["get", "point_count"], 20, 100, 30, 750, 40]
-    ]
-  )
-  |> Ml.add_layer(
-    id: "cluster-count",
-    type: :symbol,
-    source: "earthquakes",
-    filter: ["has", "point_count"],
-    layout: [
-      text_field: "{point_count_abbreviated}",
-      text_font: ["DIN Offc Pro Medium", "Arial Unicode MS Bold"],
-      text_size: 12
-    ]
-  )
-  |> Ml.add_layer(
-    id: "unclustered-point",
-    type: :circle,
-    source: "earthquakes",
-    filter: ["!", ["has", "point_count"]],
-    paint: [
-      circle_color: "#11b4da",
-      circle_radius: 4,
-      circle_stroke_width: 1,
-      circle_stroke_color: "#fff"
-    ]
-  )
-  |> Kino.MapLibre.new()
-```
-
-```elixir
-Kino.MapLibre.clusters_expansion(map, "clusters")
+# Change the marker color and reevaluate only this cell
+Kino.MapLibre.add_marker(map, {-68, 45}, color: "purple", draggable: true)
 ```
