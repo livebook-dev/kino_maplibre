@@ -7,6 +7,12 @@ defmodule Kino.MapLibreTest do
 
   setup :configure_livebook_bridge
 
+  @markers [
+    [{0, 0}, color: "red", draggable: true],
+    [{-32, 2}, color: "green"],
+    [{-45, 23}]
+  ]
+
   describe "add_marker/3" do
     test "adds a marker to a static map" do
       ml = Ml.new() |> Kino.MapLibre.add_marker({0, 0})
@@ -36,6 +42,107 @@ defmodule Kino.MapLibreTest do
         location: [-45, 15],
         options: %{"color" => "purple"}
       })
+    end
+  end
+
+  describe "add_markers/2" do
+    test "adds a list of markers to a static map" do
+      ml = Ml.new() |> Kino.MapLibre.add_markers(@markers)
+
+      assert ml.events.markers == [
+               %{location: [0, 0], options: %{"color" => "red", "draggable" => true}},
+               %{location: [-32, 2], options: %{"color" => "green"}},
+               %{location: [-45, 23], options: %{}}
+             ]
+    end
+
+    test "adds a list of markers to a static map that already has a marker" do
+      ml =
+        Ml.new()
+        |> Kino.MapLibre.add_marker({90, 0}, color: "purple")
+        |> Kino.MapLibre.add_markers(@markers)
+
+      assert ml.events.markers == [
+               %{location: [0, 0], options: %{"color" => "red", "draggable" => true}},
+               %{location: [-32, 2], options: %{"color" => "green"}},
+               %{location: [-45, 23], options: %{}},
+               %{location: [90, 0], options: %{"color" => "purple"}}
+             ]
+    end
+
+    test "adds a list of markers to a dynamic map" do
+      ml = Ml.new() |> Kino.MapLibre.new()
+      Kino.MapLibre.add_markers(ml, @markers)
+      data = connect(ml)
+
+      assert data.events.markers == [
+               %{location: [0, 0], options: %{"color" => "red", "draggable" => true}},
+               %{location: [-32, 2], options: %{"color" => "green"}},
+               %{location: [-45, 23], options: %{}}
+             ]
+
+      assert_broadcast_event(ml, "add_markers", [
+        %{location: [0, 0], options: %{"color" => "red", "draggable" => true}},
+        %{location: [-32, 2], options: %{"color" => "green"}},
+        %{location: [-45, 23], options: %{}}
+      ])
+    end
+
+    test "adds a list of markers to a dynamic map that already has a marker" do
+      ml = Ml.new() |> Kino.MapLibre.new()
+      Kino.MapLibre.add_marker(ml, {90, 0}, color: "purple")
+      Kino.MapLibre.add_markers(ml, @markers)
+      data = connect(ml)
+
+      assert data.events.markers == [
+               %{location: [0, 0], options: %{"color" => "red", "draggable" => true}},
+               %{location: [-32, 2], options: %{"color" => "green"}},
+               %{location: [-45, 23], options: %{}},
+               %{location: [90, 0], options: %{"color" => "purple"}}
+             ]
+
+      assert_broadcast_event(ml, "add_markers", [
+        %{location: [0, 0], options: %{"color" => "red", "draggable" => true}},
+        %{location: [-32, 2], options: %{"color" => "green"}},
+        %{location: [-45, 23], options: %{}}
+      ])
+    end
+
+    test "adds a list of makers to a converted map" do
+      markers = [
+        [{90, 0}, color: "purple"],
+        [{-40, 20}, color: "pink"]
+      ]
+
+      ml = Ml.new() |> Kino.MapLibre.add_markers(markers) |> Kino.MapLibre.new()
+
+      Kino.MapLibre.add_markers(ml, @markers)
+      data = connect(ml)
+
+      assert data.events.markers == [
+               %{location: [0, 0], options: %{"color" => "red", "draggable" => true}},
+               %{location: [-32, 2], options: %{"color" => "green"}},
+               %{location: [-45, 23], options: %{}},
+               %{location: [90, 0], options: %{"color" => "purple"}},
+               %{location: [-40, 20], options: %{"color" => "pink"}}
+             ]
+
+      assert_broadcast_event(ml, "add_markers", [
+        %{location: [0, 0], options: %{"color" => "red", "draggable" => true}},
+        %{location: [-32, 2], options: %{"color" => "green"}},
+        %{location: [-45, 23], options: %{}}
+      ])
+    end
+
+    test "returns the map unchanged if an empty list is given" do
+      ml = Ml.new() |> Kino.MapLibre.add_markers([])
+      kml = Kino.MapLibre.new(ml)
+      Kino.MapLibre.add_markers(kml, [])
+      data = connect(kml)
+
+      assert is_struct(ml, MapLibre)
+      refute Map.has_key?(ml, :events)
+      assert data.events == %{}
     end
   end
 
