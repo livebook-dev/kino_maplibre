@@ -193,7 +193,7 @@ defmodule Kino.MapLibre do
   """
   @spec jump_to(t(), location(), keyword()) :: :ok
   def jump_to(map, location, opts \\ []) do
-    jump = %{location: location, options: opts}
+    jump = %{location: location, options: normalize_opts(opts)}
     update_events(map, :jumps, jump)
   end
 
