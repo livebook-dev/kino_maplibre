@@ -112,6 +112,17 @@ defmodule Kino.MapLibre do
 
   @doc """
   Receives a list of markers and adds them to the map
+
+  ## Examples
+
+      markers = [
+        [{0, 0}, color: "red", draggable: true],
+        [{-32, 2}, color: "green"],
+        [{-45, 23}]
+      ]
+
+      Ml.new(center: {-68.13734351262877, 45.137451890638886}, zoom: 3)
+      |> Kino.MapLibre.add_markers(markers)
   """
   @spec add_markers(maplibre(), list()) :: :ok | %__MODULE__{}
   def add_markers(map, []), do: map
