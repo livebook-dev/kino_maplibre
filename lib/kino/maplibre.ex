@@ -256,7 +256,6 @@ defmodule Kino.MapLibre do
   end
 
   defp update_events(%__MODULE__{} = ml, key, value) do
-    key = Atom.to_string(key)
     update_in(ml.events, fn events -> Map.update(events, key, [value], &[value | &1]) end)
   end
 
