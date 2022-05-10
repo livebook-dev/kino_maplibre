@@ -1,39 +1,64 @@
-defmodule Kino.Maplibre do
+defmodule Kino.MapLibre do
   @moduledoc """
-  This kino allows rendering a regular Maplibre map and then adds an initial support for the
+  This Kino allows rendering a regular MapLibre map and then adds an initial support for the
   [Evented](https://maplibre.org/maplibre-gl-js-docs/api/events/#evented) API to update the map
   with event capabilities.
+
+  There are two types of maps: static and dynamic. Essentially, a dynamic map can be updated on
+  the fly without having to be re-evaluated. To make a map dynamic you need to wrap it in `Kino.MapLibre.new/1`
+
+  All functions are available for both map types.
 
   ## Examples
 
       map =
         Ml.new(center: {-68.13734351262877, 45.137451890638886}, zoom: 3)
-        |> Kino.Maplibre.new()
+        # This makes the map dynamic
+        |> Kino.MapLibre.new()
 
-      Kino.Maplibre.add_marker(map, {-68, 45}, color: "red", draggable: true)
-      Kino.Maplibre.add_nav_controls(map, show_compass: false)
+      # These markers will be added with no need to re-evaluate the map
+      Kino.MapLibre.add_marker(map, {-68, 45}, color: "red", draggable: true)
+      Kino.MapLibre.add_marker(map, {-69, 50})
+
+      # This is a static map and the markers will be added on evaluation
+      Ml.new(center: {-68.13734351262877, 45.137451890638886}, zoom: 3)
+      |> Kino.MapLibre.add_marker({-68, 45}, color: "red", draggable: true)
+      |> Kino.MapLibre.add_marker({-69, 50})
   """
 
   use Kino.JS, assets_path: "lib/assets/maplibre"
   use Kino.JS.Live
 
+  defstruct spec: %{}, events: %{}
+
   @type t :: Kino.JS.Live.t()
 
   @type location :: {number(), number()}
 
+  @type maplibre :: t() | MapLibre.t() | Kino.JS.Live.t()
+
   @doc """
-  Creates a new kino with the given Maplibre style.
+  Creates a new kino with the given MapLibre style.
   """
-  @spec new(Maplibre.t()) :: t()
-  def new(ml) when is_struct(ml, Maplibre) do
+  @spec new(MapLibre.t()) :: t()
+  def new(%MapLibre{} = ml) do
+    ml = %{spec: ml.spec, events: %{}}
+    Kino.JS.Live.new(__MODULE__, ml)
+  end
+
+  def new(%__MODULE__{} = ml) do
     Kino.JS.Live.new(__MODULE__, ml)
   end
 
   @doc false
-  def static(ml) when is_struct(ml, Maplibre) do
-    data = %{spec: Maplibre.to_spec(ml)}
+  def static(%__MODULE__{} = ml) do
+    data = %{spec: ml.spec, events: ml.events}
+    Kino.JS.new(__MODULE__, data, export_info_string: "maplibre")
+  end
 
-    Kino.JS.new(__MODULE__, data, export_info_string: "maplibre", export_key: :spec)
+  def static(%MapLibre{} = ml) do
+    data = %{spec: ml.spec, events: %{}}
+    Kino.JS.new(__MODULE__, data, export_info_string: "maplibre")
   end
 
   @doc """
@@ -78,9 +103,11 @@ defmodule Kino.Maplibre do
 
     See [the docs](https://maplibre.org/maplibre-gl-js-docs/api/markers/#marker) for more details.
   """
-  @spec add_marker(t(), location(), keyword()) :: :ok
-  def add_marker(kino, location, opts \\ []) do
-    Kino.JS.Live.cast(kino, {:add_marker, normalize_location(location), normalize_opts(opts)})
+  @spec add_marker(maplibre(), location(), keyword()) ::
+          :ok | %__MODULE__{}
+  def add_marker(map, location, opts \\ []) do
+    marker = %{location: normalize_location(location), options: normalize_opts(opts)}
+    update_events(map, :markers, marker)
   end
 
   @doc """
@@ -104,24 +131,25 @@ defmodule Kino.Maplibre do
 
   ## Examples
 
-        Kino.Maplibre.add_nav_controls(map, show_compass: false)
-        Kino.Maplibre.add_nav_controls(map, show_zoom: false, position: "top-left")
+        Kino.MapLibre.add_nav_controls(map, show_compass: false)
+        Kino.MapLibre.add_nav_controls(map, show_zoom: false, position: "top-left")
   """
-  @spec add_nav_controls(t(), keyword()) :: :ok
-  def add_nav_controls(kino, opts \\ []) do
+  @spec add_nav_controls(maplibre(), keyword()) :: :ok | %__MODULE__{}
+  def add_nav_controls(map, opts \\ []) do
     position = Keyword.get(opts, :position, "top-right")
-    Kino.JS.Live.cast(kino, {:add_nav_controls, position, normalize_opts(opts)})
+    control = %{position: position, options: normalize_opts(opts)}
+    update_events(map, :controls, control)
   end
 
   @doc """
   A helper function to allow inspect a cluster on click. Receives the ID of the clusters layer
   ## Examples
 
-        Kino.Maplibre.clusters_expansion(map, "earthquakes-clusters")
+        Kino.MapLibre.clusters_expansion(map, "earthquakes-clusters")
   """
-  @spec clusters_expansion(t(), String.t()) :: :ok
-  def clusters_expansion(kino, clusters_id) do
-    Kino.JS.Live.cast(kino, {:clusters_expansion, clusters_id})
+  @spec clusters_expansion(maplibre(), String.t()) :: :ok | %__MODULE__{}
+  def clusters_expansion(map, clusters_id) do
+    update_events(map, :clusters, clusters_id)
   end
 
   @doc """
@@ -129,116 +157,117 @@ defmodule Kino.Maplibre do
   effect should be enabled. It uses events and feature states to create the effect.
 
   ## Examples
-  
-        Kino.Maplibre.add_hover(map, "state-fills")
+
+        Kino.MapLibre.add_hover(map, "state-fills")
 
   See [the docs](https://maplibre.org/maplibre-gl-js-docs/api/map/#map#setfeaturestate) for more
   details.
   """
-  @spec add_hover(t(), String.t()) :: :ok
-  def add_hover(kino, layer_id) do
-    Kino.JS.Live.cast(kino, {:add_hover, layer_id})
+  @spec add_hover(maplibre(), String.t()) :: :ok | %__MODULE__{}
+  def add_hover(map, layer_id) do
+    update_events(map, :hover, layer_id)
   end
 
   @doc """
   A helper function that adds the event of centering to coordinates when clicking on a symbol.
   Receives the ID of the symbols layer and adds the event to all the symbols present in that layer
   """
-  @spec center_on_click(t(), String.t()) :: :ok
-  def center_on_click(kino, symbols_id) do
-    Kino.JS.Live.cast(kino, {:center_on_click, symbols_id})
+  @spec center_on_click(maplibre(), String.t()) :: :ok | %__MODULE__{}
+  def center_on_click(map, symbols_id) do
+    update_events(map, :center, symbols_id)
   end
 
   @doc """
   Adds an image to the style. This image can be displayed on the map like any other icon in the
   style's sprite using its ID
   """
-  @spec add_custom_image(t(), String.t(), String.t()) :: :ok
-  def add_custom_image(kino, image_url, image_name) do
-    Kino.JS.Live.cast(kino, {:add_custom_image, image_url, image_name})
+  @spec add_custom_image(maplibre(), String.t(), String.t()) ::
+          :ok | %__MODULE__{}
+  def add_custom_image(map, image_url, image_name) do
+    image = %{url: image_url, name: image_name}
+    update_events(map, :images, image)
   end
 
   @doc """
   Jumps to a given location using an animated transition
   """
   @spec jump_to(t(), location(), keyword()) :: :ok
-  def jump_to(kino, location, opts \\ []) do
-    Kino.JS.Live.cast(kino, {:jump_to, normalize_location(location), normalize_opts(opts)})
+  def jump_to(map, location, opts \\ []) do
+    jump = %{location: location, options: normalize_opts(opts)}
+    update_events(map, :jumps, jump)
   end
 
   @impl true
   def init(ml, ctx) do
-    {:ok,
-     assign(ctx,
-       ml: ml,
-       markers: [],
-       clusters: [],
-       controls: [],
-       hover: [],
-       center: [],
-       images: []
-     )}
+    {:ok, assign(ctx, spec: ml.spec, events: ml.events)}
   end
 
   @impl true
   def handle_connect(ctx) do
-    data = %{
-      spec: Maplibre.to_spec(ctx.assigns.ml),
-      markers: ctx.assigns.markers,
-      clusters: ctx.assigns.clusters,
-      controls: ctx.assigns.controls,
-      hover: ctx.assigns.hover,
-      center: ctx.assigns.center,
-      images: ctx.assigns.images
-    }
-
+    data = %{spec: ctx.assigns.spec, events: ctx.assigns.events}
     {:ok, data, ctx}
   end
 
   @impl true
-  def handle_cast({:add_marker, location, opts}, ctx) do
-    marker = %{location: location, options: opts}
+  def handle_cast({:markers, marker}, ctx) do
     broadcast_event(ctx, "add_marker", marker)
-    ctx = update(ctx, :markers, &[marker | &1])
+    ctx = update_assigned_events(ctx, :markers, marker)
     {:noreply, ctx}
   end
 
-  def handle_cast({:clusters_expansion, clusters}, ctx) do
+  def handle_cast({:clusters, clusters}, ctx) do
     broadcast_event(ctx, "clusters_expansion", clusters)
-    ctx = update(ctx, :clusters, &[clusters | &1])
+    ctx = update_assigned_events(ctx, :clusters, clusters)
     {:noreply, ctx}
   end
 
-  def handle_cast({:add_nav_controls, position, opts}, ctx) do
-    nav = %{position: position, options: opts}
-    broadcast_event(ctx, "add_nav_controls", nav)
-    ctx = update(ctx, :controls, &[nav | &1])
+  def handle_cast({:controls, control}, ctx) do
+    broadcast_event(ctx, "add_nav_controls", control)
+    ctx = update_assigned_events(ctx, :controls, control)
     {:noreply, ctx}
   end
 
-  def handle_cast({:add_hover, layer}, ctx) do
+  def handle_cast({:hover, layer}, ctx) do
     broadcast_event(ctx, "add_hover", layer)
-    ctx = update(ctx, :hover, &[layer | &1])
+    ctx = update_assigned_events(ctx, :hover, layer)
     {:noreply, ctx}
   end
 
-  def handle_cast({:center_on_click, symbols}, ctx) do
+  def handle_cast({:center, symbols}, ctx) do
     broadcast_event(ctx, "center_on_click", symbols)
-    ctx = update(ctx, :center, &[symbols | &1])
+    ctx = update_assigned_events(ctx, :center, symbols)
     {:noreply, ctx}
   end
 
-  def handle_cast({:add_custom_image, image_url, image_name}, ctx) do
-    image = %{url: image_url, name: image_name}
+  def handle_cast({:images, image}, ctx) do
     broadcast_event(ctx, "add_custom_image", image)
-    ctx = update(ctx, :images, &[image_name | &1])
+    ctx = update_assigned_events(ctx, :images, image)
     {:noreply, ctx}
   end
 
-  def handle_cast({:jump_to, location, opts}, ctx) do
-    jump_to = %{location: location, options: opts}
-    broadcast_event(ctx, "jump_to", jump_to)
+  def handle_cast({:jumps, jump}, ctx) do
+    broadcast_event(ctx, "jumps", jump)
+    ctx = update_assigned_events(ctx, :jumps, jump)
     {:noreply, ctx}
+  end
+
+  defp update_events(%MapLibre{} = ml, key, value) do
+    update_events(%__MODULE__{spec: ml.spec}, key, value)
+  end
+
+  defp update_events(%__MODULE__{} = ml, key, value) do
+    update_in(ml.events, fn events -> Map.update(events, key, [value], &[value | &1]) end)
+  end
+
+  defp update_events(kino, key, value) do
+    Kino.JS.Live.cast(kino, {key, value})
+  end
+
+  defp update_assigned_events(ctx, key, value) do
+    update_in(
+      ctx.assigns.events,
+      fn events -> Map.update(events, key, [value], &[value | &1]) end
+    )
   end
 
   defp normalize_location({lag, lng}), do: [lag, lng]

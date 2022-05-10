@@ -1,4 +1,4 @@
-defmodule KinoMaplibre.MixProject do
+defmodule KinoMapLibre.MixProject do
   use Mix.Project
 
   @version "0.1.0"
@@ -9,7 +9,7 @@ defmodule KinoMaplibre.MixProject do
       app: :kino_maplibre,
       version: @version,
       description: @description,
-      name: "KinoMaplibre",
+      name: "KinoMapLibre",
       elixir: "~> 1.13",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
@@ -41,7 +41,7 @@ defmodule KinoMaplibre.MixProject do
       extras: ["guides/components.livemd"],
       groups_for_modules: [
         Kinos: [
-          Kino.Maplibre
+          Kino.MapLibre
         ]
       ]
     ]
