@@ -111,6 +111,19 @@ defmodule Kino.MapLibre do
   end
 
   @doc """
+  Receives a list of markers and adds them to the map
+  """
+  @spec add_markers(maplibre(), list()) :: :ok | %__MODULE__{}
+  def add_markers(map, markers) do
+    markers =
+      Enum.map(markers, fn [location | opts] ->
+        %{location: normalize_location(location), options: normalize_opts(opts)}
+      end)
+
+    update_events(map, :markers, markers)
+  end
+
+  @doc """
   Adds a navigation control to the map. A navigation control contains zoom buttons and a compass.
 
   ## Options
@@ -209,6 +222,12 @@ defmodule Kino.MapLibre do
   end
 
   @impl true
+  def handle_cast({:markers, markers}, ctx) when is_list(markers) do
+    broadcast_event(ctx, "add_markers", markers)
+    ctx = update_assigned_events(ctx, :markers, markers)
+    {:noreply, ctx}
+  end
+
   def handle_cast({:markers, marker}, ctx) do
     broadcast_event(ctx, "add_marker", marker)
     ctx = update_assigned_events(ctx, :markers, marker)
@@ -256,7 +275,9 @@ defmodule Kino.MapLibre do
   end
 
   defp update_events(%__MODULE__{} = ml, key, value) do
-    update_in(ml.events, fn events -> Map.update(events, key, [value], &[value | &1]) end)
+    update_in(ml.events, fn events ->
+      Map.update(events, key, List.flatten([value]), &List.flatten([value | &1]))
+    end)
   end
 
   defp update_events(kino, key, value) do
@@ -264,10 +285,9 @@ defmodule Kino.MapLibre do
   end
 
   defp update_assigned_events(ctx, key, value) do
-    update_in(
-      ctx.assigns.events,
-      fn events -> Map.update(events, key, [value], &[value | &1]) end
-    )
+    update_in(ctx.assigns.events, fn events ->
+      Map.update(events, key, List.flatten([value]), &List.flatten([value | &1]))
+    end)
   end
 
   defp normalize_location({lag, lng}), do: [lag, lng]
