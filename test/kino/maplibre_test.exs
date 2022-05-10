@@ -133,6 +133,17 @@ defmodule Kino.MapLibreTest do
         %{location: [-45, 23], options: %{}}
       ])
     end
+
+    test "returns the map unchanged if an empty list is given" do
+      ml = Ml.new() |> Kino.MapLibre.add_markers([])
+      kml = Kino.MapLibre.new(ml)
+      Kino.MapLibre.add_markers(kml, [])
+      data = connect(kml)
+
+      assert is_struct(ml, MapLibre)
+      refute Map.has_key?(ml, :events)
+      assert data.events == %{}
+    end
   end
 
   describe "add_nav_controls/3" do

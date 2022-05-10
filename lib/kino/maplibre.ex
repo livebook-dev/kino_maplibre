@@ -114,6 +114,8 @@ defmodule Kino.MapLibre do
   Receives a list of markers and adds them to the map
   """
   @spec add_markers(maplibre(), list()) :: :ok | %__MODULE__{}
+  def add_markers(map, []), do: map
+
   def add_markers(map, markers) do
     markers =
       Enum.map(markers, fn [location | opts] ->
