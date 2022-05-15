@@ -209,8 +209,8 @@ defmodule Kino.MapLibre do
   """
   @spec add_custom_image(maplibre(), String.t(), String.t()) ::
           :ok | %__MODULE__{}
-  def add_custom_image(map, image_url, image_name) do
-    image = %{url: image_url, name: image_name}
+  def add_custom_image(map, image_name, image_url) do
+    image = %{name: image_name, url: image_url}
     update_events(map, :images, image)
   end
 
