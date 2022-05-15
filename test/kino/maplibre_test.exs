@@ -261,13 +261,13 @@ defmodule Kino.MapLibreTest do
 
   describe "add_custom_image/3" do
     test "adds a custom image to a static map" do
-      ml = Ml.new() |> Kino.MapLibre.add_custom_image("kitten_url", "kitten")
+      ml = Ml.new() |> Kino.MapLibre.add_custom_image("kitten", "kitten_url")
       assert ml.events.images == [%{name: "kitten", url: "kitten_url"}]
     end
 
     test "adds a custom image to a dynamic map" do
       ml = Ml.new() |> Kino.MapLibre.new()
-      Kino.MapLibre.add_custom_image(ml, "kitten_url", "kitten")
+      Kino.MapLibre.add_custom_image(ml, "kitten", "kitten_url")
       data = connect(ml)
 
       assert data.events.images == [%{name: "kitten", url: "kitten_url"}]
@@ -276,9 +276,9 @@ defmodule Kino.MapLibreTest do
 
     test "adds a custom image to a converted map" do
       ml =
-        Ml.new() |> Kino.MapLibre.add_custom_image("kitten_url", "kitten") |> Kino.MapLibre.new()
+        Ml.new() |> Kino.MapLibre.add_custom_image("kitten", "kitten_url") |> Kino.MapLibre.new()
 
-      Kino.MapLibre.add_custom_image(ml, "another_kitten_url", "another_kitten")
+      Kino.MapLibre.add_custom_image(ml, "another_kitten", "another_kitten_url")
       data = connect(ml)
 
       assert data.events.images == [
