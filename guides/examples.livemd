@@ -403,6 +403,27 @@ Ml.new(style: street_style)
 |> Kino.MapLibre.clusters_expansion("clusters")
 ```
 
+### Show information on click
+
+```elixir
+Ml.new(center: {-100.04, 38.907}, zoom: 3, style: street_style)
+|> Ml.add_source("states",
+  type: :geojson,
+  data:
+    "https://d2ad6b4ur7yvpq.cloudfront.net/naturalearth-3.3.0/ne_110m_admin_1_states_provinces_shp.geojson"
+)
+|> Ml.add_layer(
+  id: "states",
+  type: :fill,
+  source: "states",
+  paint: [
+    fill_color: "rgba(200, 100, 240, 0.4)",
+    fill_outline_color: "rgba(200, 100, 240, 1)"
+  ]
+)
+|> Kino.MapLibre.info_on_click("states", "name")
+```
+
 ### Dynamic maps
 
 As said before, a dynamic map can be updated without re-evaluating. Let's see how it works!
