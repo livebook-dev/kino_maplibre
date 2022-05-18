@@ -259,6 +259,35 @@ defmodule Kino.MapLibreTest do
     end
   end
 
+  describe "info_on_click/3" do
+    test "adds an info on click to a static map" do
+      ml = Ml.new() |> Kino.MapLibre.info_on_click("states", "name")
+      assert ml.events.info == [%{layer: "states", property: "name"}]
+    end
+
+    test "adds an info on click to a dynamic map" do
+      ml = Ml.new() |> Kino.MapLibre.new()
+      Kino.MapLibre.info_on_click(ml, "states", "name")
+      data = connect(ml)
+
+      assert data.events.info == [%{layer: "states", property: "name"}]
+      assert_broadcast_event(ml, "info_on_click", %{layer: "states", property: "name"})
+    end
+
+    test "adds an info on click to a converted map" do
+      ml = Ml.new() |> Kino.MapLibre.info_on_click("states", "region") |> Kino.MapLibre.new()
+      Kino.MapLibre.info_on_click(ml, "streets", "name")
+      data = connect(ml)
+
+      assert data.events.info == [
+               %{layer: "streets", property: "name"},
+               %{layer: "states", property: "region"}
+             ]
+
+      assert_broadcast_event(ml, "info_on_click", %{layer: "streets", property: "name"})
+    end
+  end
+
   describe "add_custom_image/3" do
     test "adds a custom image to a static map" do
       ml = Ml.new() |> Kino.MapLibre.add_custom_image("kitten", "kitten_url")

@@ -204,6 +204,16 @@ defmodule Kino.MapLibre do
   end
 
   @doc """
+  A helper function that adds the event to show the information of a given property on click.
+  Receives the layer ID and the name of the property to show.
+  """
+  @spec info_on_click(maplibre(), String.t(), String.t()) :: :ok | %__MODULE__{}
+  def info_on_click(map, layer_id, property) do
+    info = %{layer: layer_id, property: property}
+    update_events(map, :info, info)
+  end
+
+  @doc """
   Adds an image to the style. This image can be displayed on the map like any other icon in the
   style's sprite using its ID
   """
@@ -268,6 +278,12 @@ defmodule Kino.MapLibre do
   def handle_cast({:center, symbols}, ctx) do
     broadcast_event(ctx, "center_on_click", symbols)
     ctx = update_assigned_events(ctx, :center, symbols)
+    {:noreply, ctx}
+  end
+
+  def handle_cast({:info, info}, ctx) do
+    broadcast_event(ctx, "info_on_click", info)
+    ctx = update_assigned_events(ctx, :info, info)
     {:noreply, ctx}
   end
 
