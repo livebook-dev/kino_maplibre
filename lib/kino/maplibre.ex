@@ -319,7 +319,7 @@ defmodule Kino.MapLibre do
     end)
   end
 
-  defp normalize_location({lag, lng}), do: [lag, lng]
+  defp normalize_location({lng, lat}), do: [lng, lat]
 
   defp normalize_opts(opts) do
     Map.new(opts, fn {key, value} ->
