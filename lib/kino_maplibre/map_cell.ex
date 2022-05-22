@@ -10,12 +10,14 @@ defmodule KinoMapLibre.MapCell do
 
   @impl true
   def init(attrs, ctx) do
-    _layer = if attrs["layers"], do: List.first(attrs["layers"]), else: nil
+    layer = if attrs["layers"], do: List.first(attrs["layers"]), else: nil
 
     fields = %{
       "style" => attrs["style"],
       "center" => attrs["center"],
-      "zoom" => attrs["zoom"]
+      "zoom" => attrs["zoom"],
+      "source_id" => layer["source_id"],
+      "source_data" => layer["source_data"]
     }
 
     ctx = assign(ctx, fields: fields, ml_alias: nil, missing_dep: missing_dep())
@@ -58,6 +60,7 @@ defmodule KinoMapLibre.MapCell do
 
   defp convert_field(field, nil), do: {String.to_atom(field), nil}
 
+  # TODO: Needs improvements
   defp convert_field("center", center) do
     [lng, lat] = center |> String.replace(" ", "") |> String.split(",")
     {lng, _} = Float.parse(lng)
@@ -96,22 +99,40 @@ defmodule KinoMapLibre.MapCell do
   defp to_quoted(attrs) do
     attrs = Map.new(attrs, fn {k, v} -> convert_field(k, v) end)
 
-    [root | _nodes] = [
+    [root | nodes] = [
       %{
         field: nil,
         name: :new,
         module: attrs.ml_alias,
         args: build_arg_root(style: attrs.style, center: attrs.center, zoom: attrs.zoom)
+      },
+      %{
+        field: :source,
+        name: :add_source,
+        module: attrs.ml_alias,
+        args: build_arg_source(attrs.source_id, attrs.source_data)
       }
     ]
 
     root = build_root(root)
-    root
+    Enum.reduce(nodes, root, &apply_node/2)
   end
 
   defp build_root(root) do
     quote do
       unquote(root.module).unquote(root.name)(unquote_splicing(root.args))
+    end
+  end
+
+  defp build_arg_source(nil, _), do: nil
+  defp build_arg_source(_, nil), do: nil
+  defp build_arg_source(id, data), do: [id, [type: :geojson, data: data]]
+
+  defp apply_node(%{args: nil}, acc), do: acc
+
+  defp apply_node(%{field: _field, name: function, module: module, args: args}, acc) do
+    quote do
+      unquote(acc) |> unquote(module).unquote(function)(unquote_splicing(args))
     end
   end
 
