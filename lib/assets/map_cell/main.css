@@ -99,17 +99,20 @@ input[type=number] {
   margin-left: 4px;
 }
 
-.root-field {
+.root .field {
   display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: end;
+  margin-bottom: 0;
+  padding: 0;
 }
 
-.root-field:first-child {
+.root .field:first-child {
   width: 80%;
   justify-content: start;
   flex-shrink: 3;
+  margin-left: 0;
 }
 
 .info-box {
