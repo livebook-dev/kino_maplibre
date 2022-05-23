@@ -6,7 +6,8 @@ defmodule KinoMapLibre.MapCell do
   use Kino.SmartCell, name: "Map"
 
   @as_int ["zoom"]
-  @as_atom []
+  @as_atom ["layer_type"]
+  @as_float ["layer_opacity"]
 
   @impl true
   def init(attrs, ctx) do
@@ -17,7 +18,12 @@ defmodule KinoMapLibre.MapCell do
       "center" => attrs["center"],
       "zoom" => attrs["zoom"],
       "source_id" => layer["source_id"],
-      "source_data" => layer["source_data"]
+      "source_data" => layer["source_data"],
+      "layer_id" => layer["layer_id"],
+      "layer_source" => layer["layer_source"],
+      "layer_type" => layer["layer_type"] || "fill",
+      "layer_color" => layer["layer_color"] || "black",
+      "layer_opacity" => layer["layer_opacity"] || 1
     }
 
     ctx = assign(ctx, fields: fields, ml_alias: nil, missing_dep: missing_dep())
@@ -56,6 +62,7 @@ defmodule KinoMapLibre.MapCell do
 
   defp parse_value(_field, ""), do: nil
   defp parse_value(field, value) when field in @as_int, do: String.to_integer(value)
+  defp parse_value(field, value) when field in @as_float, do: value |> Float.parse() |> elem(0)
   defp parse_value(_field, value), do: value
 
   defp convert_field(field, nil), do: {String.to_atom(field), nil}
@@ -111,6 +118,18 @@ defmodule KinoMapLibre.MapCell do
         name: :add_source,
         module: attrs.ml_alias,
         args: build_arg_source(attrs.source_id, attrs.source_data)
+      },
+      %{
+        field: :layer,
+        name: :add_layer,
+        module: attrs.ml_alias,
+        args:
+          build_arg_layer(
+            attrs.layer_id,
+            attrs.layer_source,
+            attrs.layer_type,
+            {attrs.layer_color, attrs.layer_opacity}
+          )
       }
     ]
 
@@ -123,10 +142,6 @@ defmodule KinoMapLibre.MapCell do
       unquote(root.module).unquote(root.name)(unquote_splicing(root.args))
     end
   end
-
-  defp build_arg_source(nil, _), do: nil
-  defp build_arg_source(_, nil), do: nil
-  defp build_arg_source(id, data), do: [id, [type: :geojson, data: data]]
 
   defp apply_node(%{args: nil}, acc), do: acc
 
@@ -143,6 +158,21 @@ defmodule KinoMapLibre.MapCell do
       [] -> []
       opts -> [opts]
     end
+  end
+
+  defp build_arg_source(nil, _), do: nil
+  defp build_arg_source(_, nil), do: nil
+  defp build_arg_source(id, data), do: [id, [type: :geojson, data: data]]
+
+  defp build_arg_layer(nil, _, _, _), do: nil
+  defp build_arg_layer(_, nil, _, _), do: nil
+
+  defp build_arg_layer(id, source, type, {color, opacity}) do
+    [[id: id, source: source, type: type, paint: build_arg_paint(type, {color, opacity})]]
+  end
+
+  defp build_arg_paint(type, {color, opacity}) do
+    ["#{type}_color": color, "#{type}_opacity": opacity]
   end
 
   defp missing_dep() do

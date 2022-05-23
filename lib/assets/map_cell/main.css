@@ -45,8 +45,12 @@
   color: var(--gray-600);
 }
 
-input[type=number] {
+input[type="number"] {
   appearance: textfield;
+}
+
+input[type="range"] {
+  appearance: none;
 }
 
 .input::placeholder {
@@ -78,6 +82,14 @@ input[type=number] {
   width: 58%;
 }
 
+.input--lg {
+  width: 75%;
+}
+
+.input--xl {
+  width: 90%;
+}
+
 .root .input-label {
   color: var(--gray-600);
   padding-right: 6px;
@@ -91,11 +103,9 @@ input[type=number] {
   flex-direction: column;
   margin-bottom: 16px;
   padding: 0 12px;
-  flex-basis: 26%;
 }
 
 .field:first-child {
-  flex-basis: 39%;
   margin-left: 4px;
 }
 
@@ -109,7 +119,6 @@ input[type=number] {
 }
 
 .root .field:first-child {
-  width: 80%;
   justify-content: start;
   flex-shrink: 3;
   margin-left: 0;
@@ -169,4 +178,24 @@ input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button {
   -webkit-appearance: none;
   margin: 0;
+}
+
+#rangeValue {
+  position: relative;
+  display: block;
+  text-align: center;
+  margin-bottom: 2px;
+  font-size: 0.875rem;
+  color: var(--gray-800);
+  font-weight: 500;
+}
+
+.range {
+  height: 25px;
+  appearance: none;
+  outline: none;
+  border-radius: 25px;
+  overflow: hidden;
+  margin-top: 5px;
+  cursor: pointer;
 }
