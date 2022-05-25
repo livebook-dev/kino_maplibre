@@ -16,7 +16,7 @@ defmodule KinoMapLibre.MapCell do
     fields = %{
       "style" => attrs["style"],
       "center" => attrs["center"],
-      "zoom" => attrs["zoom"],
+      "zoom" => attrs["zoom"] || 0,
       "source_id" => layer["source_id"],
       "source_data" => layer["source_data"],
       "layer_id" => layer["layer_id"],
@@ -74,6 +74,8 @@ defmodule KinoMapLibre.MapCell do
     {lat, _} = Float.parse(lat)
     {:center, {lng, lat}}
   end
+
+  defp convert_field("zoom", 0), do: {:zoom, nil}
 
   defp convert_field(field, value) when field in @as_atom do
     {String.to_atom(field), String.to_atom(value)}
