@@ -9,24 +9,29 @@ defmodule KinoMapLibre.MapCell do
   @as_atom ["layer_type"]
   @as_float ["layer_opacity"]
 
+  @source_fields ["source_id", "source_data"]
+
   @impl true
   def init(attrs, ctx) do
-    layer = if attrs["layers"], do: List.first(attrs["layers"]), else: nil
-
-    fields = %{
+    root_fields = %{
       "style" => attrs["style"],
       "center" => attrs["center"],
-      "zoom" => attrs["zoom"] || 0,
-      "source_id" => layer["source_id"],
-      "source_data" => layer["source_data"],
-      "layer_id" => layer["layer_id"],
-      "layer_source" => layer["layer_source"],
-      "layer_type" => layer["layer_type"] || "fill",
-      "layer_color" => layer["layer_color"] || "black",
-      "layer_opacity" => layer["layer_opacity"] || 1
+      "zoom" => attrs["zoom"] || 0
     }
 
-    ctx = assign(ctx, fields: fields, ml_alias: nil, missing_dep: missing_dep())
+    sources = attrs["sources"] || empty_source()
+
+    layers = attrs["layers"] || empty_layer()
+
+    ctx =
+      assign(ctx,
+        root_fields: root_fields,
+        sources: sources,
+        layers: layers,
+        ml_alias: nil,
+        missing_dep: missing_dep()
+      )
+
     {:ok, ctx, reevaluate_on_change: true}
   end
 
@@ -39,7 +44,9 @@ defmodule KinoMapLibre.MapCell do
   @impl true
   def handle_connect(ctx) do
     payload = %{
-      fields: ctx.assigns.fields,
+      root_fields: ctx.assigns.root_fields,
+      sources: ctx.assigns.sources,
+      layers: ctx.assigns.layers,
       missing_dep: ctx.assigns.missing_dep
     }
 
@@ -53,10 +60,61 @@ defmodule KinoMapLibre.MapCell do
   end
 
   @impl true
-  def handle_event("update_field", %{"field" => field, "value" => value}, ctx) do
+  def handle_event("update_field", %{"field" => field, "value" => value, "idx" => nil}, ctx) do
     parsed_value = parse_value(field, value)
-    ctx = update(ctx, :fields, &Map.put(&1, field, parsed_value))
-    broadcast_event(ctx, "update", %{"fields" => %{field => parsed_value}})
+    ctx = update(ctx, :root_fields, &Map.put(&1, field, parsed_value))
+    broadcast_event(ctx, "update_root", %{"fields" => %{field => parsed_value}})
+    {:noreply, ctx}
+  end
+
+  def handle_event("update_field", %{"field" => field, "value" => value, "idx" => idx}, ctx)
+      when field in @source_fields do
+    parsed_value = parse_value(field, value)
+    updated_sources = put_in(ctx.assigns.sources, [Access.at(idx), field], parsed_value)
+    ctx = update_in(ctx.assigns, fn assigns -> Map.put(assigns, :sources, updated_sources) end)
+    broadcast_event(ctx, "update_source", %{"idx" => idx, "fields" => %{field => parsed_value}})
+
+    {:noreply, ctx}
+  end
+
+  def handle_event("update_field", %{"field" => field, "value" => value, "idx" => idx}, ctx) do
+    parsed_value = parse_value(field, value)
+    updated_layers = put_in(ctx.assigns.layers, [Access.at(idx), field], parsed_value)
+    ctx = update_in(ctx.assigns, fn assigns -> Map.put(assigns, :layers, updated_layers) end)
+    broadcast_event(ctx, "update_layer", %{"idx" => idx, "fields" => %{field => parsed_value}})
+
+    {:noreply, ctx}
+  end
+
+  def handle_event("add_source", _, ctx) do
+    updated_sources = ctx.assigns.sources ++ empty_source()
+    ctx = update_in(ctx.assigns, fn assigns -> Map.put(assigns, :sources, updated_sources) end)
+    broadcast_event(ctx, "set_sources", %{"sources" => updated_sources})
+
+    {:noreply, ctx}
+  end
+
+  def handle_event("add_layer", _, ctx) do
+    updated_layers = ctx.assigns.layers ++ empty_layer()
+    ctx = update_in(ctx.assigns, fn assigns -> Map.put(assigns, :layers, updated_layers) end)
+    broadcast_event(ctx, "set_layers", %{"layers" => updated_layers})
+
+    {:noreply, ctx}
+  end
+
+  def handle_event("remove_source", %{"source" => idx}, ctx) do
+    updated_sources = List.delete_at(ctx.assigns.sources, idx)
+    ctx = update_in(ctx.assigns, fn assigns -> Map.put(assigns, :sources, updated_sources) end)
+    broadcast_event(ctx, "set_sources", %{"sources" => updated_sources})
+
+    {:noreply, ctx}
+  end
+
+  def handle_event("remove_layer", %{"layer" => idx}, ctx) do
+    updated_layers = List.delete_at(ctx.assigns.layers, idx)
+    ctx = update_in(ctx.assigns, fn assigns -> Map.put(assigns, :layers, updated_layers) end)
+    broadcast_event(ctx, "set_layers", %{"layers" => updated_layers})
+
     {:noreply, ctx}
   end
 
@@ -92,48 +150,58 @@ defmodule KinoMapLibre.MapCell do
 
   @impl true
   def to_attrs(ctx) do
-    ctx.assigns.fields
-    |> add_layer()
+    ctx.assigns.root_fields
+    |> Map.put("sources", ctx.assigns.sources)
+    |> Map.put("layers", ctx.assigns.layers)
     |> Map.put("ml_alias", ctx.assigns.ml_alias)
   end
 
   @impl true
   def to_source(attrs) do
     attrs
-    |> extract_layer()
     |> to_quoted()
     |> Kino.SmartCell.quoted_to_string()
   end
 
-  defp to_quoted(attrs) do
-    attrs = Map.new(attrs, fn {k, v} -> convert_field(k, v) end)
+  defp to_quoted(%{"sources" => sources, "layers" => layers} = attrs) do
+    attrs =
+      Map.take(attrs, ["style", "center", "zoom", "ml_alias"])
+      |> Map.new(fn {k, v} -> convert_field(k, v) end)
 
-    [root | nodes] = [
-      %{
-        field: nil,
-        name: :new,
-        module: attrs.ml_alias,
-        args: build_arg_root(style: attrs.style, center: attrs.center, zoom: attrs.zoom)
-      },
-      %{
-        field: :source,
-        name: :add_source,
-        module: attrs.ml_alias,
-        args: build_arg_source(attrs.source_id, attrs.source_data)
-      },
-      %{
-        field: :layer,
-        name: :add_layer,
-        module: attrs.ml_alias,
-        args:
-          build_arg_layer(
-            attrs.layer_id,
-            attrs.layer_source,
-            attrs.layer_type,
-            {attrs.layer_color, attrs.layer_opacity}
-          )
-      }
-    ]
+    root = %{
+      field: nil,
+      name: :new,
+      module: attrs.ml_alias,
+      args: build_arg_root(style: attrs.style, center: attrs.center, zoom: attrs.zoom)
+    }
+
+    sources =
+      for source <- sources,
+          source = Map.new(source, fn {k, v} -> convert_field(k, v) end),
+          do: %{
+            field: :source,
+            name: :add_source,
+            module: attrs.ml_alias,
+            args: build_arg_source(source.source_id, source.source_data)
+          }
+
+    layers =
+      for layer <- layers,
+          layer = Map.new(layer, fn {k, v} -> convert_field(k, v) end),
+          do: %{
+            field: :layer,
+            name: :add_layer,
+            module: attrs.ml_alias,
+            args:
+              build_arg_layer(
+                layer.layer_id,
+                layer.layer_source,
+                layer.layer_type,
+                {layer.layer_color, layer.layer_opacity}
+              )
+          }
+
+    nodes = sources ++ layers
 
     root = build_root(root)
     Enum.reduce(nodes, root, &apply_node/2)
@@ -183,14 +251,19 @@ defmodule KinoMapLibre.MapCell do
     end
   end
 
-  defp add_layer(attrs) do
-    {root, layer} = Map.split(attrs, ["style", "center", "zoom"])
-    Map.put(root, "layers", [layer])
+  defp empty_source() do
+    [%{"source_id" => nil, "source_data" => nil}]
   end
 
-  defp extract_layer(%{"layers" => [layer]} = attrs) do
-    attrs
-    |> Map.delete("layers")
-    |> Map.merge(layer)
+  defp empty_layer() do
+    [
+      %{
+        "layer_id" => nil,
+        "layer_source" => nil,
+        "layer_type" => "fill",
+        "layer_color" => "black",
+        "layer_opacity" => 1
+      }
+    ]
   end
 end
