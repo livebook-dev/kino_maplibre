@@ -135,6 +135,8 @@ defmodule KinoMapLibre.MapCell do
 
   defp convert_field("zoom", 0), do: {:zoom, nil}
 
+  defp convert_field("style", "default"), do: {:style, nil}
+
   defp convert_field(field, value) when field in @as_atom do
     {String.to_atom(field), String.to_atom(value)}
   end

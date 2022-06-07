@@ -74,12 +74,12 @@ input[type=number] {
   font-weight: 500;
 }
 
-.input--xs {
-  width: 30%;
+.range--sm {
+  width: 70%;
 }
 
-.input--md {
-  width: 58%;
+.input--xl {
+  flex-basis: 60%;
 }
 
 .root .input-label {
@@ -94,25 +94,20 @@ input[type=number] {
   display: flex;
   flex-direction: column;
   margin-bottom: 16px;
-  flex-basis: 28%;
-}
-
-.field:first-child {
-  flex-basis: 41%;
-  margin-left: 4px;
 }
 
 .root-field {
   display: flex;
   flex-direction: row;
   align-items: center;
-  justify-content: end;
+  justify-content: flex-end;
+  flex-grow: 0.5;
+  flex-basis: 30%;
+  margin-bottom: 0;
 }
 
 .root-field:first-child {
-  width: 80%;
   justify-content: start;
-  flex-shrink: 3;
 }
 
 .button {
@@ -222,9 +217,9 @@ input::-webkit-inner-spin-button {
   background-color: transparent;
   position: relative;
   top: 42px;
-  left: 74.5%;
+  left: 89%;
   height: 0px;
-  width: 24%;
+  width: 10%;
 }
 
 .button-svg {
@@ -247,7 +242,7 @@ input::-webkit-inner-spin-button {
   color: var(--gray-600);
 }
 
-.layer-wrapper {
+.wrapper {
   border-bottom: 1px solid var(--gray-100);
   margin-left: 14px;
   margin-right: 14px;
@@ -255,7 +250,7 @@ input::-webkit-inner-spin-button {
   padding-bottom: 8px;
 }
 
-.layer-wrapper:last-child {
+.wrapper:last-child {
   border: none;
   margin-bottom: 0px;
 }
@@ -263,6 +258,10 @@ input::-webkit-inner-spin-button {
 .wrapper--closed {
   padding-bottom: 12px;
   margin-top: 10px;
+}
+
+.source-wrapper:last-child {
+  border-bottom: 1px solid var(--gray-300);
 }
 
 .add-layer {
@@ -274,7 +273,7 @@ input::-webkit-inner-spin-button {
 .rangeValue {
   position: relative;
   display: block;
-  text-align: center;
+  text-align: left;
   margin-bottom: 2px;
   font-size: 0.875rem;
   color: var(--gray-800);
@@ -300,10 +299,14 @@ input::-webkit-inner-spin-button {
   padding-top: 6px;
 }
 
-.sources {
-  border-bottom: 1px solid var(--gray-300);
-}
-
 .layers {
   padding-top: 12px;
+}
+
+.zoomValue {
+  color: var(--gray-600);
+  padding-left: 6px;
+  font-size: 0.875rem;
+  margin-top: 10px;
+  width: 15px;
 }
