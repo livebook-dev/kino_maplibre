@@ -5,7 +5,7 @@ defmodule KinoMapLibre.MapCell do
   use Kino.JS.Live
   use Kino.SmartCell, name: "Map"
 
-  @as_int ["zoom"]
+  @as_int ["zoom", "layer_radius"]
   @as_atom ["layer_type"]
   @as_float ["layer_opacity"]
 
@@ -199,7 +199,7 @@ defmodule KinoMapLibre.MapCell do
                 layer.layer_id,
                 layer.layer_source,
                 layer.layer_type,
-                {layer.layer_color, layer.layer_opacity}
+                {layer.layer_color, layer.layer_radius, layer.layer_opacity}
               )
           }
 
@@ -239,11 +239,15 @@ defmodule KinoMapLibre.MapCell do
   defp build_arg_layer(nil, _, _, _), do: nil
   defp build_arg_layer(_, nil, _, _), do: nil
 
-  defp build_arg_layer(id, source, type, {color, opacity}) do
-    [[id: id, source: source, type: type, paint: build_arg_paint(type, {color, opacity})]]
+  defp build_arg_layer(id, source, type, {color, radius, opacity}) do
+    [[id: id, source: source, type: type, paint: build_arg_paint(type, {color, radius, opacity})]]
   end
 
-  defp build_arg_paint(type, {color, opacity}) do
+  defp build_arg_paint(:heatmap, {_color, radius, opacity}) do
+    [heatmap_radius: radius, heatmap_opacity: opacity]
+  end
+
+  defp build_arg_paint(type, {color, _radius, opacity}) do
     ["#{type}_color": color, "#{type}_opacity": opacity]
   end
 
@@ -264,7 +268,8 @@ defmodule KinoMapLibre.MapCell do
         "layer_source" => nil,
         "layer_type" => "fill",
         "layer_color" => "black",
-        "layer_opacity" => 1
+        "layer_opacity" => 1,
+        "layer_radius" => 10
       }
     ]
   end

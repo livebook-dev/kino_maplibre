@@ -78,6 +78,17 @@ input[type=number] {
   width: 70%;
 }
 
+.range--md {
+  width: 100%;
+}
+
+.range-wrapper {
+  display: flex;
+  flex-direction: column;
+  flex-basis: 12%;
+  margin-right: 3px;
+}
+
 .input--xl {
   flex-basis: 60%;
 }

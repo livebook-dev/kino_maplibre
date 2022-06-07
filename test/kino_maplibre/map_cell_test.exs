@@ -1,8 +1,6 @@
 defmodule KinoMapLibre.MapCellTest do
   use ExUnit.Case, async: true
 
-  import Kino.Test
-
   alias KinoMapLibre.MapCell
 
   @root %{"style" => nil, "center" => nil, "zoom" => 0, "ml_alias" => MapLibre}
@@ -12,7 +10,8 @@ defmodule KinoMapLibre.MapCellTest do
     "layer_source" => nil,
     "layer_type" => "fill",
     "layer_color" => "black",
-    "layer_opacity" => 1
+    "layer_opacity" => 1,
+    "layer_radius" => 10
   }
 
   describe "code generation" do
@@ -47,7 +46,8 @@ defmodule KinoMapLibre.MapCellTest do
         "layer_source" => "urban-areas",
         "layer_type" => "fill",
         "layer_color" => "green",
-        "layer_opacity" => 0.5
+        "layer_opacity" => 0.5,
+        "layer_radius" => 10
       }
 
       attrs = Map.merge(@root, %{"sources" => [source], "layers" => [layer]})
@@ -86,7 +86,8 @@ defmodule KinoMapLibre.MapCellTest do
         "layer_source" => "urban-areas",
         "layer_type" => "fill",
         "layer_color" => "green",
-        "layer_opacity" => 0.5
+        "layer_opacity" => 0.5,
+        "layer_radius" => 10
       }
 
       layer_rwanda = %{
@@ -94,7 +95,8 @@ defmodule KinoMapLibre.MapCellTest do
         "layer_source" => "rwanda-provinces",
         "layer_type" => "fill",
         "layer_color" => "magenta",
-        "layer_opacity" => 1
+        "layer_opacity" => 1,
+        "layer_radius" => 10
       }
 
       attrs =
@@ -125,6 +127,38 @@ defmodule KinoMapLibre.MapCellTest do
                source: "rwanda-provinces",
                type: :fill,
                paint: [fill_color: "magenta", fill_opacity: 1]
+             )\
+             """
+    end
+
+    test "source for a map with a layer with radius" do
+      source = %{
+        "source_id" => "earthquakes",
+        "source_data" => "https://maplibre.org/maplibre-gl-js-docs/assets/earthquakes.geojson"
+      }
+
+      layer = %{
+        "layer_id" => "earthquakes-heatmap",
+        "layer_source" => "earthquakes",
+        "layer_type" => "heatmap",
+        "layer_color" => "black",
+        "layer_opacity" => 0.5,
+        "layer_radius" => 5
+      }
+
+      attrs = Map.merge(@root, %{"sources" => [source], "layers" => [layer]})
+
+      assert MapCell.to_source(attrs) == """
+             MapLibre.new()
+             |> MapLibre.add_source("earthquakes",
+               type: :geojson,
+               data: "https://maplibre.org/maplibre-gl-js-docs/assets/earthquakes.geojson"
+             )
+             |> MapLibre.add_layer(
+               id: "earthquakes-heatmap",
+               source: "earthquakes",
+               type: :heatmap,
+               paint: [heatmap_radius: 5, heatmap_opacity: 0.5]
              )\
              """
     end
