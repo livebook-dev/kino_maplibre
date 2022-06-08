@@ -9,12 +9,12 @@ defmodule KinoMapLibre.MapCell do
   @as_atom ["layer_type"]
   @as_float ["layer_opacity"]
 
-  @source_fields ["source_id", "source_data"]
+  @source_fields ["source_id", "source_data", "source_type"]
 
   @impl true
   def init(attrs, ctx) do
     root_fields = %{
-      "style" => attrs["style"],
+      "style" => attrs["style"] || "default",
       "center" => attrs["center"],
       "zoom" => attrs["zoom"] || 0
     }
@@ -29,6 +29,7 @@ defmodule KinoMapLibre.MapCell do
         sources: sources,
         layers: layers,
         ml_alias: nil,
+        source_variables: [],
         missing_dep: missing_dep()
       )
 
@@ -36,9 +37,10 @@ defmodule KinoMapLibre.MapCell do
   end
 
   @impl true
-  def scan_binding(pid, _binding, env) do
+  def scan_binding(pid, binding, env) do
+    source_variables = for {key, val} <- binding, is_struct(val), do: Atom.to_string(key)
     ml_alias = ml_alias(env)
-    send(pid, {:scan_binding_result, ml_alias})
+    send(pid, {:scan_binding_result, source_variables, ml_alias})
   end
 
   @impl true
@@ -47,6 +49,7 @@ defmodule KinoMapLibre.MapCell do
       root_fields: ctx.assigns.root_fields,
       sources: ctx.assigns.sources,
       layers: ctx.assigns.layers,
+      source_variables: ctx.assigns.source_variables,
       missing_dep: ctx.assigns.missing_dep
     }
 
@@ -54,8 +57,9 @@ defmodule KinoMapLibre.MapCell do
   end
 
   @impl true
-  def handle_info({:scan_binding_result, ml_alias}, ctx) do
-    ctx = assign(ctx, ml_alias: ml_alias)
+  def handle_info({:scan_binding_result, source_variables, ml_alias}, ctx) do
+    ctx = assign(ctx, ml_alias: ml_alias, source_variables: source_variables)
+    broadcast_event(ctx, "set_source_variables", %{"source_variables" => source_variables})
     {:noreply, ctx}
   end
 
@@ -64,6 +68,25 @@ defmodule KinoMapLibre.MapCell do
     parsed_value = parse_value(field, value)
     ctx = update(ctx, :root_fields, &Map.put(&1, field, parsed_value))
     broadcast_event(ctx, "update_root", %{"fields" => %{field => parsed_value}})
+    {:noreply, ctx}
+  end
+
+  def handle_event(
+        "update_field",
+        %{"field" => "source_type" <> _, "value" => value, "idx" => idx},
+        ctx
+      ) do
+    source = get_in(ctx.assigns.sources, [Access.at(idx)])
+    source_data = if value == "variable", do: List.first(ctx.assigns.source_variables)
+    updated_source = %{source | "source_type" => value, "source_data" => source_data}
+    updated_sources = List.replace_at(ctx.assigns.sources, idx, updated_source)
+    ctx = update_in(ctx.assigns, fn assigns -> Map.put(assigns, :sources, updated_sources) end)
+
+    broadcast_event(ctx, "update_source", %{
+      "idx" => idx,
+      "fields" => %{"source_type" => value, "source_data" => source_data}
+    })
+
     {:noreply, ctx}
   end
 
@@ -184,7 +207,7 @@ defmodule KinoMapLibre.MapCell do
             field: :source,
             name: :add_source,
             module: attrs.ml_alias,
-            args: build_arg_source(source.source_id, source.source_data)
+            args: build_arg_source(source.source_id, source.source_data, source.source_type)
           }
 
     layers =
@@ -232,9 +255,10 @@ defmodule KinoMapLibre.MapCell do
     end
   end
 
-  defp build_arg_source(nil, _), do: nil
-  defp build_arg_source(_, nil), do: nil
-  defp build_arg_source(id, data), do: [id, [type: :geojson, data: data]]
+  defp build_arg_source(nil, _, _), do: nil
+  defp build_arg_source(_, nil, _), do: nil
+  defp build_arg_source(id, data, "variable"), do: [id, Macro.var(String.to_atom(data), nil)]
+  defp build_arg_source(id, data, "url"), do: [id, [type: :geojson, data: data]]
 
   defp build_arg_layer(nil, _, _, _), do: nil
   defp build_arg_layer(_, nil, _, _), do: nil
@@ -258,7 +282,7 @@ defmodule KinoMapLibre.MapCell do
   end
 
   defp empty_source() do
-    [%{"source_id" => nil, "source_data" => nil}]
+    [%{"source_id" => nil, "source_data" => nil, "source_type" => "url"}]
   end
 
   defp empty_layer() do

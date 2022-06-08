@@ -74,6 +74,14 @@ input[type=number] {
   font-weight: 500;
 }
 
+.input--md {
+  flex-basis: 40%;
+}
+
+.input--xl {
+  flex-basis: 60%;
+}
+
 .range--sm {
   width: 70%;
 }
@@ -87,10 +95,6 @@ input[type=number] {
   flex-direction: column;
   flex-basis: 12%;
   margin-right: 3px;
-}
-
-.input--xl {
-  flex-basis: 60%;
 }
 
 .root .input-label {
@@ -320,4 +324,16 @@ input::-webkit-inner-spin-button {
   font-size: 0.875rem;
   margin-top: 10px;
   width: 15px;
+}
+
+.radio-group {
+  font-size: 0.75rem;
+  display: flex;
+  position: absolute;
+  left: 50%;
+  width: 200px;
+}
+
+.radio-wrapper {
+  margin-right: 5px;
 }

@@ -4,7 +4,7 @@ defmodule KinoMapLibre.MapCellTest do
   alias KinoMapLibre.MapCell
 
   @root %{"style" => nil, "center" => nil, "zoom" => 0, "ml_alias" => MapLibre}
-  @source %{"source_id" => nil, "source_data" => nil}
+  @source %{"source_id" => nil, "source_data" => nil, "source_type" => "url"}
   @layer %{
     "layer_id" => nil,
     "layer_source" => nil,
@@ -38,7 +38,8 @@ defmodule KinoMapLibre.MapCellTest do
       source = %{
         "source_id" => "urban-areas",
         "source_data" =>
-          "https://d2ad6b4ur7yvpq.cloudfront.net/naturalearth-3.3.0/ne_50m_urban_areas.geojson"
+          "https://d2ad6b4ur7yvpq.cloudfront.net/naturalearth-3.3.0/ne_50m_urban_areas.geojson",
+        "source_type" => "url"
       }
 
       layer = %{
@@ -72,13 +73,15 @@ defmodule KinoMapLibre.MapCellTest do
       source_urban = %{
         "source_id" => "urban-areas",
         "source_data" =>
-          "https://d2ad6b4ur7yvpq.cloudfront.net/naturalearth-3.3.0/ne_50m_urban_areas.geojson"
+          "https://d2ad6b4ur7yvpq.cloudfront.net/naturalearth-3.3.0/ne_50m_urban_areas.geojson",
+        "source_type" => "url"
       }
 
       source_rwanda = %{
         "source_id" => "rwanda-provinces",
         "source_data" =>
-          "https://maplibre.org/maplibre-gl-js-docs/assets/rwanda-provinces.geojson"
+          "https://maplibre.org/maplibre-gl-js-docs/assets/rwanda-provinces.geojson",
+        "source_type" => "url"
       }
 
       layer_urban = %{
@@ -134,7 +137,8 @@ defmodule KinoMapLibre.MapCellTest do
     test "source for a map with a layer with radius" do
       source = %{
         "source_id" => "earthquakes",
-        "source_data" => "https://maplibre.org/maplibre-gl-js-docs/assets/earthquakes.geojson"
+        "source_data" => "https://maplibre.org/maplibre-gl-js-docs/assets/earthquakes.geojson",
+        "source_type" => "url"
       }
 
       layer = %{
