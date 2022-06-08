@@ -94,7 +94,7 @@ input[type=number] {
   display: flex;
   flex-direction: column;
   flex-basis: 12%;
-  margin-right: 3px;
+  margin-right: 2px;
 }
 
 .root .input-label {
