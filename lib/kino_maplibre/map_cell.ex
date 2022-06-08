@@ -8,8 +8,8 @@ defmodule KinoMapLibre.MapCell do
   @as_int ["zoom", "layer_radius"]
   @as_atom ["layer_type"]
   @as_float ["layer_opacity"]
-
   @source_fields ["source_id", "source_data", "source_type"]
+  @geometries [Geo.Point, Geo.LineString, Geo.Polygon, Geo.GeometryCollection]
 
   @impl true
   def init(attrs, ctx) do
@@ -38,7 +38,7 @@ defmodule KinoMapLibre.MapCell do
 
   @impl true
   def scan_binding(pid, binding, env) do
-    source_variables = for {key, val} <- binding, is_struct(val), do: Atom.to_string(key)
+    source_variables = for {key, val} <- binding, is_geometry(val), do: Atom.to_string(key)
     ml_alias = ml_alias(env)
     send(pid, {:scan_binding_result, source_variables, ml_alias})
   end
@@ -297,4 +297,7 @@ defmodule KinoMapLibre.MapCell do
       }
     ]
   end
+
+  defp is_geometry(%module{}) when module in @geometries, do: true
+  defp is_geometry(_), do: false
 end
