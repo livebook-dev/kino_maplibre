@@ -154,12 +154,14 @@ defmodule KinoMapLibre.MapCell do
   defp convert_field(field, nil), do: {String.to_atom(field), nil}
 
   defp convert_field("center", center) do
-    if Regex.match?(~r/-?\d+\.?\d+,\s+-?\d+\.?\d+/, center) do
-      [lng, lat] = center |> String.replace(" ", "") |> String.split(",")
-      {{lng, _}, {lat, _}} = {Float.parse(lng), Float.parse(lat)}
-      {:center, {lng, lat}}
-    else
-      {:center, nil}
+    Regex.named_captures(~r/(?<lng>-?\d+\.?\d*),\s*(?<lat>-?\d+\.?\d*)/, center)
+    |> case do
+      %{"lat" => lat, "lng" => lng} ->
+        {{lng, _}, {lat, _}} = {Float.parse(lng), Float.parse(lat)}
+        {:center, {lng, lat}}
+
+      _ ->
+        {:center, nil}
     end
   end
 
