@@ -38,7 +38,12 @@ defmodule KinoMapLibre.MapCell do
 
   @impl true
   def scan_binding(pid, binding, env) do
-    source_variables = for {key, val} <- binding, is_geometry(val), do: Atom.to_string(key)
+    source_variables =
+      for {key, val} <- binding,
+          is_geometry(val),
+          type = if(is_struct(val), do: "geo", else: "url"),
+          do: %{variable: Atom.to_string(key), type: type}
+
     ml_alias = ml_alias(env)
     send(pid, {:scan_binding_result, source_variables, ml_alias})
   end
@@ -77,7 +82,7 @@ defmodule KinoMapLibre.MapCell do
         ctx
       ) do
     source = get_in(ctx.assigns.sources, [Access.at(idx)])
-    source_data = if value == "variable", do: List.first(ctx.assigns.source_variables)
+    source_data = if value == "variable", do: List.first(ctx.assigns.source_variables).variable
     updated_source = %{source | "source_type" => value, "source_data" => source_data}
     updated_sources = List.replace_at(ctx.assigns.sources, idx, updated_source)
     ctx = update_in(ctx.assigns, fn assigns -> Map.put(assigns, :sources, updated_sources) end)
@@ -179,6 +184,7 @@ defmodule KinoMapLibre.MapCell do
     |> Map.put("sources", ctx.assigns.sources)
     |> Map.put("layers", ctx.assigns.layers)
     |> Map.put("ml_alias", ctx.assigns.ml_alias)
+    |> Map.put("variables", ctx.assigns.source_variables)
   end
 
   @impl true
@@ -189,6 +195,8 @@ defmodule KinoMapLibre.MapCell do
   end
 
   defp to_quoted(%{"sources" => sources, "layers" => layers} = attrs) do
+    vars = attrs["variables"]
+
     attrs =
       Map.take(attrs, ["style", "center", "zoom", "ml_alias"])
       |> Map.new(fn {k, v} -> convert_field(k, v) end)
@@ -207,7 +215,13 @@ defmodule KinoMapLibre.MapCell do
             field: :source,
             name: :add_source,
             module: attrs.ml_alias,
-            args: build_arg_source(source.source_id, source.source_data, source.source_type)
+            args:
+              build_arg_source(
+                source.source_id,
+                source.source_data,
+                source.source_type,
+                get_in(vars, [Access.filter(&(&1.variable == source.source_data)), :type])
+              )
           }
 
     layers =
@@ -255,10 +269,16 @@ defmodule KinoMapLibre.MapCell do
     end
   end
 
-  defp build_arg_source(nil, _, _), do: nil
-  defp build_arg_source(_, nil, _), do: nil
-  defp build_arg_source(id, data, "variable"), do: [id, Macro.var(String.to_atom(data), nil)]
-  defp build_arg_source(id, data, "url"), do: [id, [type: :geojson, data: data]]
+  defp build_arg_source(nil, _, _, _), do: nil
+  defp build_arg_source(_, nil, _, _), do: nil
+
+  defp build_arg_source(id, data, "variable", ["geo"]),
+    do: [id, Macro.var(String.to_atom(data), nil)]
+
+  defp build_arg_source(id, data, "variable", _),
+    do: [id, [type: :geojson, data: Macro.var(String.to_atom(data), nil)]]
+
+  defp build_arg_source(id, data, "url", _), do: [id, [type: :geojson, data: data]]
 
   defp build_arg_layer(nil, _, _, _), do: nil
   defp build_arg_layer(_, nil, _, _), do: nil
@@ -299,5 +319,6 @@ defmodule KinoMapLibre.MapCell do
   end
 
   defp is_geometry(%module{}) when module in @geometries, do: true
+  defp is_geometry("http" <> url), do: url |> String.split(".") |> List.last() == "geojson"
   defp is_geometry(_), do: false
 end
