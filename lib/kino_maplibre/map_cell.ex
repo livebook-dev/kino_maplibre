@@ -85,7 +85,7 @@ defmodule KinoMapLibre.MapCell do
     source_data = if value == "variable", do: List.first(ctx.assigns.source_variables).variable
     updated_source = %{source | "source_type" => value, "source_data" => source_data}
     updated_sources = List.replace_at(ctx.assigns.sources, idx, updated_source)
-    ctx = update_in(ctx.assigns, fn assigns -> Map.put(assigns, :sources, updated_sources) end)
+    ctx = %{ctx | assigns: %{ctx.assigns | sources: updated_sources}}
 
     broadcast_event(ctx, "update_source", %{
       "idx" => idx,
@@ -99,7 +99,7 @@ defmodule KinoMapLibre.MapCell do
       when field in @source_fields do
     parsed_value = parse_value(field, value)
     updated_sources = put_in(ctx.assigns.sources, [Access.at(idx), field], parsed_value)
-    ctx = update_in(ctx.assigns, fn assigns -> Map.put(assigns, :sources, updated_sources) end)
+    ctx = %{ctx | assigns: %{ctx.assigns | sources: updated_sources}}
     broadcast_event(ctx, "update_source", %{"idx" => idx, "fields" => %{field => parsed_value}})
 
     {:noreply, ctx}
@@ -108,7 +108,7 @@ defmodule KinoMapLibre.MapCell do
   def handle_event("update_field", %{"field" => field, "value" => value, "idx" => idx}, ctx) do
     parsed_value = parse_value(field, value)
     updated_layers = put_in(ctx.assigns.layers, [Access.at(idx), field], parsed_value)
-    ctx = update_in(ctx.assigns, fn assigns -> Map.put(assigns, :layers, updated_layers) end)
+    ctx = %{ctx | assigns: %{ctx.assigns | layers: updated_layers}}
     broadcast_event(ctx, "update_layer", %{"idx" => idx, "fields" => %{field => parsed_value}})
 
     {:noreply, ctx}
@@ -116,7 +116,7 @@ defmodule KinoMapLibre.MapCell do
 
   def handle_event("add_source", _, ctx) do
     updated_sources = ctx.assigns.sources ++ empty_source()
-    ctx = update_in(ctx.assigns, fn assigns -> Map.put(assigns, :sources, updated_sources) end)
+    ctx = %{ctx | assigns: %{ctx.assigns | sources: updated_sources}}
     broadcast_event(ctx, "set_sources", %{"sources" => updated_sources})
 
     {:noreply, ctx}
