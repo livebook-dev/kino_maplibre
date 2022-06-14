@@ -308,6 +308,7 @@ input::-webkit-inner-spin-button {
 .root .range {
   width: 50%;
   margin-top: 8px;
+  flex-basis: 15%;
 }
 
 .root .range .input-label {
