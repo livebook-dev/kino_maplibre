@@ -18,7 +18,7 @@ defmodule KinoMapLibre.MapCell do
       "zoom" => attrs["zoom"] || 0
     }
 
-    layers = attrs["layers"] || empty_layer()
+    layers = attrs["layers"] || new_layer()
 
     ctx =
       assign(ctx,
@@ -58,7 +58,28 @@ defmodule KinoMapLibre.MapCell do
   @impl true
   def handle_info({:scan_binding_result, source_variables, ml_alias}, ctx) do
     ctx = assign(ctx, ml_alias: ml_alias, source_variables: source_variables)
-    broadcast_event(ctx, "set_source_variables", %{"source_variables" => source_variables})
+
+    first_layer = List.first(ctx.assigns.layers)
+
+    updated_layer =
+      case {first_layer["layer_source"], source_variables} do
+        {nil, [%{variable: source_variable, type: source_type} | _]} ->
+          %{first_layer | "layer_source" => source_variable, "layer_source_type" => source_type}
+
+        _ ->
+          %{}
+      end
+
+    ctx =
+      if updated_layer == %{},
+        do: ctx,
+        else: %{ctx | assigns: %{ctx.assigns | layers: [updated_layer]}}
+
+    broadcast_event(ctx, "set_source_variables", %{
+      "source_variables" => source_variables,
+      "fields" => updated_layer
+    })
+
     {:noreply, ctx}
   end
 
@@ -99,7 +120,10 @@ defmodule KinoMapLibre.MapCell do
   end
 
   def handle_event("add_layer", _, ctx) do
-    updated_layers = ctx.assigns.layers ++ empty_layer()
+    %{"layer_source" => layer_source, "layer_source_type" => source_type} =
+      List.first(ctx.assigns.layers)
+
+    updated_layers = ctx.assigns.layers ++ new_layer(layer_source, source_type)
     ctx = update_in(ctx.assigns, fn assigns -> Map.put(assigns, :layers, updated_layers) end)
     broadcast_event(ctx, "set_layers", %{"layers" => updated_layers})
 
@@ -275,12 +299,12 @@ defmodule KinoMapLibre.MapCell do
     end
   end
 
-  defp empty_layer() do
+  defp new_layer(layer_source \\ nil, layer_source_type \\ nil) do
     [
       %{
         "layer_id" => nil,
-        "layer_source" => nil,
-        "layer_source_type" => nil,
+        "layer_source" => layer_source,
+        "layer_source_type" => layer_source_type,
         "layer_type" => "circle",
         "layer_color" => "black",
         "layer_opacity" => 1,
