@@ -37,8 +37,7 @@ defmodule KinoMapLibre.MapCell do
     source_variables =
       for {key, val} <- binding,
           is_geometry(val),
-          type = if(is_struct(val), do: "geo", else: "url"),
-          do: %{variable: Atom.to_string(key), type: type}
+          do: %{variable: Atom.to_string(key), type: source_type(val)}
 
     ml_alias = ml_alias(env)
     send(pid, {:scan_binding_result, source_variables, ml_alias})
@@ -68,6 +67,25 @@ defmodule KinoMapLibre.MapCell do
     parsed_value = parse_value(field, value)
     ctx = update(ctx, :root_fields, &Map.put(&1, field, parsed_value))
     broadcast_event(ctx, "update_root", %{"fields" => %{field => parsed_value}})
+    {:noreply, ctx}
+  end
+
+  def handle_event(
+        "update_field",
+        %{"field" => "layer_source", "value" => value, "idx" => idx},
+        ctx
+      ) do
+    layer = get_in(ctx.assigns.layers, [Access.at(idx)])
+
+    [layer_source_type] =
+      get_in(ctx.assigns.source_variables, [Access.filter(&(&1.variable == value)), :type])
+
+    updated_layer = %{layer | "layer_source" => value, "layer_source_type" => layer_source_type}
+    updated_layers = List.replace_at(ctx.assigns.layers, idx, updated_layer)
+    ctx = %{ctx | assigns: %{ctx.assigns | layers: updated_layers}}
+
+    broadcast_event(ctx, "update_layer", %{"idx" => idx, "fields" => %{"layer_source" => value}})
+
     {:noreply, ctx}
   end
 
@@ -148,7 +166,6 @@ defmodule KinoMapLibre.MapCell do
   end
 
   defp to_quoted(attrs) do
-    vars = attrs["variables"]
     layers = attrs["layers"]
     sources = build_sources(layers)
 
@@ -170,12 +187,7 @@ defmodule KinoMapLibre.MapCell do
             field: :source,
             name: :add_source,
             module: attrs.ml_alias,
-            args:
-              build_arg_source(
-                source.source_id,
-                source.source_data,
-                get_in(vars, [Access.filter(&(&1.variable == source.source_data)), :type])
-              )
+            args: build_arg_source(source.source_id, source.source_data, source.source_type)
           }
 
     layers =
@@ -226,7 +238,7 @@ defmodule KinoMapLibre.MapCell do
   defp build_arg_source(nil, _, _), do: nil
   defp build_arg_source(_, nil, _), do: nil
 
-  defp build_arg_source(id, data, ["geo"]),
+  defp build_arg_source(id, data, :geo),
     do: [id, Macro.var(String.to_atom(data), nil)]
 
   defp build_arg_source(id, data, _),
@@ -247,6 +259,16 @@ defmodule KinoMapLibre.MapCell do
     ["#{type}_color": color, "#{type}_opacity": opacity]
   end
 
+  defp build_sources(layers) do
+    for layer <- layers,
+        do: %{
+          "source_id" => layer["layer_source"],
+          "source_data" => layer["layer_source"],
+          "source_type" => layer["layer_source_type"]
+        },
+        uniq: true
+  end
+
   defp missing_dep() do
     unless Code.ensure_loaded?(MapLibre) do
       ~s/{:maplibre, "~> 0.1.0"}/
@@ -258,7 +280,8 @@ defmodule KinoMapLibre.MapCell do
       %{
         "layer_id" => nil,
         "layer_source" => nil,
-        "layer_type" => "fill",
+        "layer_source_type" => nil,
+        "layer_type" => "circle",
         "layer_color" => "black",
         "layer_opacity" => 1,
         "layer_radius" => 10
@@ -270,9 +293,5 @@ defmodule KinoMapLibre.MapCell do
   defp is_geometry("http" <> url), do: url |> String.split(".") |> List.last() == "geojson"
   defp is_geometry(_), do: false
 
-  defp build_sources(layers) do
-    get_in(layers, [Access.all(), "layer_source"])
-    |> Enum.dedup()
-    |> Enum.map(&%{"source_id" => &1, "source_data" => &1})
-  end
+  defp source_type(source), do: if(is_struct(source), do: :geo)
 end

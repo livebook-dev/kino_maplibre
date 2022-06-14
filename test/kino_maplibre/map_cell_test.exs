@@ -4,16 +4,10 @@ defmodule KinoMapLibre.MapCellTest do
   alias KinoMapLibre.MapCell
 
   @root %{"style" => nil, "center" => nil, "zoom" => 0, "ml_alias" => MapLibre}
-  @variables [
-    %{type: "geo", variable: "conferences"},
-    %{type: "url", variable: "earthquakes"},
-    %{type: "url", variable: "urban_areas"},
-    %{type: "url", variable: "rwanda_provinces"}
-  ]
   @layer %{
     "layer_id" => nil,
     "layer_source" => nil,
-    "layer_type" => "fill",
+    "layer_type" => "circle",
     "layer_color" => "black",
     "layer_opacity" => 1,
     "layer_radius" => 10
@@ -21,7 +15,7 @@ defmodule KinoMapLibre.MapCellTest do
 
   describe "code generation" do
     test "source for a default empty map" do
-      attrs = Map.merge(@root, %{"variables" => @variables, "layers" => [@layer]})
+      attrs = Map.merge(@root, %{"layers" => [@layer]})
 
       assert MapCell.to_source(attrs) == """
              MapLibre.new()\
@@ -32,7 +26,7 @@ defmodule KinoMapLibre.MapCellTest do
       attrs =
         @root
         |> Map.merge(%{"zoom" => 3, "center" => "-74.5, 40"})
-        |> Map.merge(%{"variables" => @variables, "layers" => [@layer]})
+        |> Map.merge(%{"layers" => [@layer]})
 
       assert MapCell.to_source(attrs) == """
              MapLibre.new(center: {-74.5, 40.0}, zoom: 3)\
@@ -49,7 +43,7 @@ defmodule KinoMapLibre.MapCellTest do
         "layer_radius" => 10
       }
 
-      attrs = Map.merge(@root, %{"variables" => @variables, "layers" => [layer]})
+      attrs = Map.merge(@root, %{"layers" => [layer]})
 
       assert MapCell.to_source(attrs) == """
              MapLibre.new()
@@ -82,11 +76,7 @@ defmodule KinoMapLibre.MapCellTest do
         "layer_radius" => 10
       }
 
-      attrs =
-        Map.merge(@root, %{
-          "variables" => @variables,
-          "layers" => [layer_urban, layer_rwanda]
-        })
+      attrs = Map.merge(@root, %{"layers" => [layer_urban, layer_rwanda]})
 
       assert MapCell.to_source(attrs) == """
              MapLibre.new()
@@ -117,7 +107,7 @@ defmodule KinoMapLibre.MapCellTest do
         "layer_radius" => 5
       }
 
-      attrs = Map.merge(@root, %{"variables" => @variables, "layers" => [layer]})
+      attrs = Map.merge(@root, %{"layers" => [layer]})
 
       assert MapCell.to_source(attrs) == """
              MapLibre.new()
@@ -127,6 +117,31 @@ defmodule KinoMapLibre.MapCellTest do
                source: "earthquakes",
                type: :heatmap,
                paint: [heatmap_radius: 5, heatmap_opacity: 0.5]
+             )\
+             """
+    end
+
+    test "source for a map with a geo source type" do
+      layer = %{
+        "layer_id" => "earthquakes-heatmap",
+        "layer_source" => "earthquakes",
+        "layer_source_type" => :geo,
+        "layer_type" => "circle",
+        "layer_color" => "green",
+        "layer_opacity" => 0.7,
+        "layer_radius" => 10
+      }
+
+      attrs = Map.merge(@root, %{"layers" => [layer]})
+
+      assert MapCell.to_source(attrs) == """
+             MapLibre.new()
+             |> MapLibre.add_source("earthquakes", earthquakes)
+             |> MapLibre.add_layer(
+               id: "earthquakes-heatmap",
+               source: "earthquakes",
+               type: :circle,
+               paint: [circle_color: "green", circle_opacity: 0.7]
              )\
              """
     end
