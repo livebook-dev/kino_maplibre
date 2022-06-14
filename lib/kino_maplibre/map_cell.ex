@@ -9,6 +9,12 @@ defmodule KinoMapLibre.MapCell do
   @as_atom ["layer_type"]
   @as_float ["layer_opacity"]
   @geometries [Geo.Point, Geo.LineString, Geo.Polygon, Geo.GeometryCollection]
+  @styles %{
+    "street (non-commercial)" =>
+      "https://api.maptiler.com/maps/streets/style.json?key=get_your_own_OpIi9ZULNHzrESv6T2vL",
+    "terrain (non-commercial)" =>
+      "https://api.maptiler.com/maps/hybrid/style.json?key=get_your_own_OpIi9ZULNHzrESv6T2vL"
+  }
 
   @impl true
   def init(attrs, ctx) do
@@ -158,8 +164,7 @@ defmodule KinoMapLibre.MapCell do
   end
 
   defp convert_field("zoom", 0), do: {:zoom, nil}
-
-  defp convert_field("style", "default"), do: {:style, nil}
+  defp convert_field("style", value), do: {:style, Map.get(@styles, value)}
 
   defp convert_field(field, value) when field in @as_atom do
     {String.to_atom(field), String.to_atom(value)}
