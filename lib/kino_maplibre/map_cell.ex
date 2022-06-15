@@ -137,6 +137,24 @@ defmodule KinoMapLibre.MapCell do
     {:noreply, ctx}
   end
 
+  def handle_event(
+        "update_field",
+        %{"field" => "coordinates_type" <> _, "value" => value, "idx" => idx},
+        ctx
+      ) do
+    layer = get_in(ctx.assigns.layers, [Access.at(idx)])
+    updated_layer = %{layer | "coordinates_type" => value}
+    updated_layers = List.replace_at(ctx.assigns.layers, idx, updated_layer)
+    ctx = %{ctx | assigns: %{ctx.assigns | layers: updated_layers}}
+
+    broadcast_event(ctx, "update_layer", %{
+      "idx" => idx,
+      "fields" => %{"coordinates_type" => value}
+    })
+
+    {:noreply, ctx}
+  end
+
   def handle_event("update_field", %{"field" => field, "value" => value, "idx" => idx}, ctx) do
     parsed_value = parse_value(field, value)
     updated_layers = put_in(ctx.assigns.layers, [Access.at(idx), field], parsed_value)
@@ -324,9 +342,17 @@ defmodule KinoMapLibre.MapCell do
           "source_id" => layer["layer_source"],
           "source_data" => layer["layer_source"],
           "source_type" => layer["layer_source_type"],
-          "source_coordinates" => {layer["coordinates_format"], layer["layer_lng_lat"]}
+          "source_coordinates" => build_source_coordinates(layer)
         },
         uniq: true
+  end
+
+  defp build_source_coordinates(%{"coordinates_type" => "combined"} = layer) do
+    {layer["coordinates_format"], layer["layer_lng_lat"]}
+  end
+
+  defp build_source_coordinates(layer) do
+    {"lng-lat", [layer["layer_longitude"], layer["layer_latitude"]]}
   end
 
   defp missing_dep() do
@@ -346,7 +372,10 @@ defmodule KinoMapLibre.MapCell do
         "layer_opacity" => 1,
         "layer_radius" => 10,
         "layer_lng_lat" => nil,
-        "coordinates_format" => "lng-lat"
+        "coordinates_format" => "lng-lat",
+        "coordinates_type" => "combined",
+        "layer_longitude" => nil,
+        "layer_latitude" => nil
       }
     ]
   end
