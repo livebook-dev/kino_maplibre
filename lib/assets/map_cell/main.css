@@ -330,9 +330,8 @@ input::-webkit-inner-spin-button {
 .radio-group {
   font-size: 0.75rem;
   display: flex;
-  position: absolute;
-  left: 50%;
-  width: 200px;
+  flex-direction: column;
+  padding-top: 15px;
 }
 
 .radio-wrapper {

@@ -119,6 +119,24 @@ defmodule KinoMapLibre.MapCell do
     {:noreply, ctx}
   end
 
+  def handle_event(
+        "update_field",
+        %{"field" => "coordinates_format" <> _, "value" => value, "idx" => idx},
+        ctx
+      ) do
+    layer = get_in(ctx.assigns.layers, [Access.at(idx)])
+    updated_layer = %{layer | "coordinates_format" => value}
+    updated_layers = List.replace_at(ctx.assigns.layers, idx, updated_layer)
+    ctx = %{ctx | assigns: %{ctx.assigns | layers: updated_layers}}
+
+    broadcast_event(ctx, "update_layer", %{
+      "idx" => idx,
+      "fields" => %{"coordinates_format" => value}
+    })
+
+    {:noreply, ctx}
+  end
+
   def handle_event("update_field", %{"field" => field, "value" => value, "idx" => idx}, ctx) do
     parsed_value = parse_value(field, value)
     updated_layers = put_in(ctx.assigns.layers, [Access.at(idx), field], parsed_value)
@@ -306,7 +324,7 @@ defmodule KinoMapLibre.MapCell do
           "source_id" => layer["layer_source"],
           "source_data" => layer["layer_source"],
           "source_type" => layer["layer_source_type"],
-          "source_coordinates" => layer["layer_lng_lat"]
+          "source_coordinates" => {layer["coordinates_format"], layer["layer_lng_lat"]}
         },
         uniq: true
   end
@@ -327,7 +345,8 @@ defmodule KinoMapLibre.MapCell do
         "layer_color" => "black",
         "layer_opacity" => 1,
         "layer_radius" => 10,
-        "layer_lng_lat" => nil
+        "layer_lng_lat" => nil,
+        "coordinates_format" => "lng-lat"
       }
     ]
   end
