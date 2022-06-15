@@ -42,8 +42,8 @@ defmodule KinoMapLibre.MapCell do
   def scan_binding(pid, binding, env) do
     source_variables =
       for {key, val} <- binding,
-          is_geometry(val),
-          do: %{variable: Atom.to_string(key), type: source_type(val)}
+          is_geometry?(val) || is_table?(val),
+          do: %{variable: Atom.to_string(key), type: source_type(val), columns: columns_for(val)}
 
     ml_alias = ml_alias(env)
     send(pid, {:scan_binding_result, source_variables, ml_alias})
@@ -111,7 +111,10 @@ defmodule KinoMapLibre.MapCell do
     updated_layers = List.replace_at(ctx.assigns.layers, idx, updated_layer)
     ctx = %{ctx | assigns: %{ctx.assigns | layers: updated_layers}}
 
-    broadcast_event(ctx, "update_layer", %{"idx" => idx, "fields" => %{"layer_source" => value}})
+    broadcast_event(ctx, "update_layer", %{
+      "idx" => idx,
+      "fields" => %{"layer_source" => value, "layer_source_type" => layer_source_type}
+    })
 
     {:noreply, ctx}
   end
@@ -216,7 +219,13 @@ defmodule KinoMapLibre.MapCell do
             field: :source,
             name: :add_source,
             module: attrs.ml_alias,
-            args: build_arg_source(source.source_id, source.source_data, source.source_type)
+            args:
+              build_arg_source(
+                source.source_id,
+                source.source_data,
+                source.source_type,
+                source.source_coordinates
+              )
           }
 
     layers =
@@ -264,13 +273,16 @@ defmodule KinoMapLibre.MapCell do
     end
   end
 
-  defp build_arg_source(nil, _, _), do: nil
-  defp build_arg_source(_, nil, _), do: nil
+  defp build_arg_source(nil, _, _, _), do: nil
+  defp build_arg_source(_, nil, _, _), do: nil
 
-  defp build_arg_source(id, data, :geo),
+  defp build_arg_source(id, data, :geo, _),
     do: [id, Macro.var(String.to_atom(data), nil)]
 
-  defp build_arg_source(id, data, _),
+  defp build_arg_source(id, data, :table, coordinates),
+    do: [id, Macro.var(String.to_atom(data), nil), coordinates]
+
+  defp build_arg_source(id, data, _, _),
     do: [id, [type: :geojson, data: Macro.var(String.to_atom(data), nil)]]
 
   defp build_arg_layer(nil, _, _, _), do: nil
@@ -293,7 +305,8 @@ defmodule KinoMapLibre.MapCell do
         do: %{
           "source_id" => layer["layer_source"],
           "source_data" => layer["layer_source"],
-          "source_type" => layer["layer_source_type"]
+          "source_type" => layer["layer_source_type"],
+          "source_coordinates" => layer["layer_lng_lat"]
         },
         uniq: true
   end
@@ -313,14 +326,30 @@ defmodule KinoMapLibre.MapCell do
         "layer_type" => "circle",
         "layer_color" => "black",
         "layer_opacity" => 1,
-        "layer_radius" => 10
+        "layer_radius" => 10,
+        "layer_lng_lat" => nil
       }
     ]
   end
 
-  defp is_geometry(%module{}) when module in @geometries, do: true
-  defp is_geometry("http" <> url), do: url |> String.split(".") |> List.last() == "geojson"
-  defp is_geometry(_), do: false
+  defp is_geometry?(%module{}) when module in @geometries, do: true
+  defp is_geometry?("http" <> url), do: url |> String.split(".") |> List.last() == "geojson"
+  defp is_geometry?(_), do: false
 
-  defp source_type(source), do: if(is_struct(source), do: :geo)
+  defp is_table?(val), do: implements?(Table.Reader, val)
+
+  defp source_type(%module{}) when module in @geometries, do: :geo
+  defp source_type(val), do: if(is_table?(val), do: :table)
+
+  defp columns_for(data) do
+    with true <- implements?(Table.Reader, data),
+         {_, %{columns: columns}, _} <- Table.Reader.init(data),
+         true <- Enum.all?(columns, &implements?(String.Chars, &1)) do
+      Enum.map(columns, &to_string/1)
+    else
+      _ -> nil
+    end
+  end
+
+  defp implements?(protocol, value), do: protocol.impl_for(value) != nil
 end
