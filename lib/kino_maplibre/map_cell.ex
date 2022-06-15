@@ -6,7 +6,7 @@ defmodule KinoMapLibre.MapCell do
   use Kino.SmartCell, name: "Map"
 
   @as_int ["zoom", "layer_radius"]
-  @as_atom ["layer_type"]
+  @as_atom ["layer_type", "source_type"]
   @as_float ["layer_opacity"]
   @geometries [Geo.Point, Geo.LineString, Geo.Polygon, Geo.GeometryCollection]
   @styles %{
@@ -386,8 +386,8 @@ defmodule KinoMapLibre.MapCell do
 
   defp is_table?(val), do: implements?(Table.Reader, val)
 
-  defp source_type(%module{}) when module in @geometries, do: :geo
-  defp source_type(val), do: if(is_table?(val), do: :table)
+  defp source_type(%module{}) when module in @geometries, do: "geo"
+  defp source_type(val), do: if(is_table?(val), do: "table")
 
   defp columns_for(data) do
     with true <- implements?(Table.Reader, data),
