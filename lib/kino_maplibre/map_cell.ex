@@ -312,12 +312,18 @@ defmodule KinoMapLibre.MapCell do
         uniq: true
   end
 
-  defp build_source_coordinates(%{"coordinates_format" => "columns"} = layer) do
+  defp build_source_coordinates(%{"layer_source_type" => "table"} = layer) do
+    source_coordinates(layer)
+  end
+
+  defp build_source_coordinates(_), do: nil
+
+  defp source_coordinates(%{"coordinates_format" => "columns"} = layer) do
     {:lng_lat, [layer["layer_longitude"], layer["layer_latitude"]]}
   end
 
-  defp build_source_coordinates(layer) do
-    {String.to_atom(layer["coordinates_format"]), layer["layer_lng_lat"]}
+  defp source_coordinates(layer) do
+    {String.to_atom(layer["coordinates_format"]), layer["layer_coordinates"]}
   end
 
   defp add_source_function(:geo), do: :add_geo_source
@@ -341,7 +347,7 @@ defmodule KinoMapLibre.MapCell do
         "layer_opacity" => 1,
         "layer_radius" => 10,
         "coordinates_format" => "lng_lat",
-        "layer_lng_lat" => nil,
+        "layer_coordinates" => nil,
         "layer_longitude" => nil,
         "layer_latitude" => nil
       }

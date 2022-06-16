@@ -125,7 +125,7 @@ defmodule KinoMapLibre.MapCellTest do
       layer = %{
         "layer_id" => "earthquakes-heatmap",
         "layer_source" => "earthquakes",
-        "layer_source_type" => :geo,
+        "layer_source_type" => "geo",
         "layer_type" => "circle",
         "layer_color" => "green",
         "layer_opacity" => 0.7,
@@ -136,9 +136,36 @@ defmodule KinoMapLibre.MapCellTest do
 
       assert MapCell.to_source(attrs) == """
              MapLibre.new()
-             |> MapLibre.add_source("earthquakes", earthquakes)
+             |> MapLibre.add_geo_source("earthquakes", earthquakes)
              |> MapLibre.add_layer(
                id: "earthquakes-heatmap",
+               source: "earthquakes",
+               type: :circle,
+               paint: [circle_color: "green", circle_opacity: 0.7]
+             )\
+             """
+    end
+
+    test "source for a map with tabular source type" do
+      layer = %{
+        "layer_id" => "earthquakes",
+        "layer_source" => "earthquakes",
+        "layer_source_type" => "table",
+        "layer_type" => "circle",
+        "layer_color" => "green",
+        "layer_opacity" => 0.7,
+        "layer_radius" => 10,
+        "layer_coordinates" => "coordinates",
+        "coordinates_format" => "lat_lng"
+      }
+
+      attrs = Map.merge(@root, %{"layers" => [layer]})
+
+      assert MapCell.to_source(attrs) == """
+             MapLibre.new()
+             |> MapLibre.add_table_source("earthquakes", earthquakes, {:lat_lng, "coordinates"})
+             |> MapLibre.add_layer(
+               id: "earthquakes",
                source: "earthquakes",
                type: :circle,
                paint: [circle_color: "green", circle_opacity: 0.7]
