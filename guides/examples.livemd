@@ -464,7 +464,7 @@ Kino.MapLibre.add_nav_controls(map)
 
 You can easily add `:geojson` sources to your map using the [Geo](https://hexdocs.pm/geo/readme.html) package. All geometries and collections are supported.
 
-Just use the `add_source/3` function by giving the geometry or collection as third argument. The type will be detected automatically.
+Just use the `add_geo_source/3` function by giving the geometry or collection as third argument. The type will be detected automatically.
 
 ```elixir
 p1 = %Geo.Point{coordinates: {-121.415061, 40.506229}}
@@ -499,7 +499,7 @@ pl = %Geo.Polygon{
 gc = %Geo.GeometryCollection{geometries: [p1, p2, p3, pl]}
 
 Ml.new(center: {-121.403732, 40.492392}, zoom: 10, style: street_style)
-|> Ml.add_source("national-park", gc)
+|> Ml.add_geo_source("national-park", gc)
 |> Ml.add_layer(
   id: "park-boundary",
   type: :fill,
@@ -524,7 +524,7 @@ p3 = %Geo.Point{coordinates: {-123.3596, 48.4268}, properties: %{year: 2007}}
 gc = %Geo.GeometryCollection{geometries: [p1, p2, p3]}
 
 Ml.new()
-|> Ml.add_source("conferences", gc)
+|> Ml.add_geo_source("conferences", gc)
 |> Ml.add_layer(
   id: "conferences",
   type: :symbol,
