@@ -70,7 +70,7 @@ defmodule KinoMapLibre.MapCell do
     updated_layer =
       case {first_layer["layer_source"], source_variables} do
         {nil, [%{variable: source_variable, type: source_type} | _]} ->
-          %{first_layer | "layer_source" => source_variable, "layer_source_type" => source_type}
+          %{first_layer | "layer_source" => source_variable, "source_type" => source_type}
 
         _ ->
           %{}
@@ -104,16 +104,16 @@ defmodule KinoMapLibre.MapCell do
       ) do
     layer = get_in(ctx.assigns.layers, [Access.at(idx)])
 
-    [layer_source_type] =
+    [source_type] =
       get_in(ctx.assigns.source_variables, [Access.filter(&(&1.variable == value)), :type])
 
-    updated_layer = %{layer | "layer_source" => value, "layer_source_type" => layer_source_type}
+    updated_layer = %{layer | "layer_source" => value, "source_type" => source_type}
     updated_layers = List.replace_at(ctx.assigns.layers, idx, updated_layer)
     ctx = %{ctx | assigns: %{ctx.assigns | layers: updated_layers}}
 
     broadcast_event(ctx, "update_layer", %{
       "idx" => idx,
-      "fields" => %{"layer_source" => value, "layer_source_type" => layer_source_type}
+      "fields" => %{"layer_source" => value, "source_type" => source_type}
     })
 
     {:noreply, ctx}
@@ -129,7 +129,7 @@ defmodule KinoMapLibre.MapCell do
   end
 
   def handle_event("add_layer", _, ctx) do
-    %{"layer_source" => layer_source, "layer_source_type" => source_type} =
+    %{"layer_source" => layer_source, "source_type" => source_type} =
       List.first(ctx.assigns.layers)
 
     updated_layers = ctx.assigns.layers ++ new_layer(layer_source, source_type)
@@ -306,25 +306,21 @@ defmodule KinoMapLibre.MapCell do
         do: %{
           "source_id" => layer["layer_source"],
           "source_data" => layer["layer_source"],
-          "source_type" => layer["layer_source_type"],
-          "source_coordinates" => build_source_coordinates(layer)
+          "source_type" => layer["source_type"],
+          "source_coordinates" => source_coordinates(layer)
         },
         uniq: true
   end
 
-  defp build_source_coordinates(%{"layer_source_type" => "table"} = layer) do
-    source_coordinates(layer)
+  defp source_coordinates(%{"source_type" => "table", "coordinates_format" => "columns"} = layer) do
+    {:lng_lat, [layer["source_longitude"], layer["source_latitude"]]}
   end
 
-  defp build_source_coordinates(_), do: nil
-
-  defp source_coordinates(%{"coordinates_format" => "columns"} = layer) do
-    {:lng_lat, [layer["layer_longitude"], layer["layer_latitude"]]}
+  defp source_coordinates(%{"source_type" => "table"} = layer) do
+    {String.to_atom(layer["coordinates_format"]), layer["source_coordinates"]}
   end
 
-  defp source_coordinates(layer) do
-    {String.to_atom(layer["coordinates_format"]), layer["layer_coordinates"]}
-  end
+  defp source_coordinates(_), do: nil
 
   defp add_source_function(:geo), do: :add_geo_source
   defp add_source_function(:table), do: :add_table_source
@@ -336,20 +332,20 @@ defmodule KinoMapLibre.MapCell do
     end
   end
 
-  defp new_layer(layer_source \\ nil, layer_source_type \\ nil) do
+  defp new_layer(layer_source \\ nil, source_type \\ nil) do
     [
       %{
         "layer_id" => nil,
         "layer_source" => layer_source,
-        "layer_source_type" => layer_source_type,
+        "source_type" => source_type,
         "layer_type" => "circle",
         "layer_color" => "black",
         "layer_opacity" => 1,
         "layer_radius" => 10,
         "coordinates_format" => "lng_lat",
-        "layer_coordinates" => nil,
-        "layer_longitude" => nil,
-        "layer_latitude" => nil
+        "source_coordinates" => nil,
+        "source_longitude" => nil,
+        "source_latitude" => nil
       }
     ]
   end

@@ -125,7 +125,7 @@ defmodule KinoMapLibre.MapCellTest do
       layer = %{
         "layer_id" => "earthquakes-heatmap",
         "layer_source" => "earthquakes",
-        "layer_source_type" => "geo",
+        "source_type" => "geo",
         "layer_type" => "circle",
         "layer_color" => "green",
         "layer_opacity" => 0.7,
@@ -150,12 +150,12 @@ defmodule KinoMapLibre.MapCellTest do
       layer = %{
         "layer_id" => "earthquakes",
         "layer_source" => "earthquakes",
-        "layer_source_type" => "table",
+        "source_type" => "table",
         "layer_type" => "circle",
         "layer_color" => "green",
         "layer_opacity" => 0.7,
         "layer_radius" => 10,
-        "layer_coordinates" => "coordinates",
+        "source_coordinates" => "coordinates",
         "coordinates_format" => "lat_lng"
       }
 
