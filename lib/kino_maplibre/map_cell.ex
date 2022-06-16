@@ -119,42 +119,6 @@ defmodule KinoMapLibre.MapCell do
     {:noreply, ctx}
   end
 
-  def handle_event(
-        "update_field",
-        %{"field" => "coordinates_format" <> _, "value" => value, "idx" => idx},
-        ctx
-      ) do
-    layer = get_in(ctx.assigns.layers, [Access.at(idx)])
-    updated_layer = %{layer | "coordinates_format" => value}
-    updated_layers = List.replace_at(ctx.assigns.layers, idx, updated_layer)
-    ctx = %{ctx | assigns: %{ctx.assigns | layers: updated_layers}}
-
-    broadcast_event(ctx, "update_layer", %{
-      "idx" => idx,
-      "fields" => %{"coordinates_format" => value}
-    })
-
-    {:noreply, ctx}
-  end
-
-  def handle_event(
-        "update_field",
-        %{"field" => "coordinates_type" <> _, "value" => value, "idx" => idx},
-        ctx
-      ) do
-    layer = get_in(ctx.assigns.layers, [Access.at(idx)])
-    updated_layer = %{layer | "coordinates_type" => value}
-    updated_layers = List.replace_at(ctx.assigns.layers, idx, updated_layer)
-    ctx = %{ctx | assigns: %{ctx.assigns | layers: updated_layers}}
-
-    broadcast_event(ctx, "update_layer", %{
-      "idx" => idx,
-      "fields" => %{"coordinates_type" => value}
-    })
-
-    {:noreply, ctx}
-  end
-
   def handle_event("update_field", %{"field" => field, "value" => value, "idx" => idx}, ctx) do
     parsed_value = parse_value(field, value)
     updated_layers = put_in(ctx.assigns.layers, [Access.at(idx), field], parsed_value)
@@ -253,7 +217,7 @@ defmodule KinoMapLibre.MapCell do
           source = Map.new(source, fn {k, v} -> convert_field(k, v) end),
           do: %{
             field: :source,
-            name: :add_source,
+            name: add_source_function(source.source_type),
             module: attrs.ml_alias,
             args:
               build_arg_source(
@@ -311,6 +275,7 @@ defmodule KinoMapLibre.MapCell do
 
   defp build_arg_source(nil, _, _, _), do: nil
   defp build_arg_source(_, nil, _, _), do: nil
+  defp build_arg_source(_, _, :table, {_, nil}), do: nil
 
   defp build_arg_source(id, data, :geo, _),
     do: [id, Macro.var(String.to_atom(data), nil)]
@@ -347,13 +312,17 @@ defmodule KinoMapLibre.MapCell do
         uniq: true
   end
 
-  defp build_source_coordinates(%{"coordinates_type" => "combined"} = layer) do
-    {layer["coordinates_format"], layer["layer_lng_lat"]}
+  defp build_source_coordinates(%{"coordinates_format" => "columns"} = layer) do
+    {:lng_lat, [layer["layer_longitude"], layer["layer_latitude"]]}
   end
 
   defp build_source_coordinates(layer) do
-    {"lng-lat", [layer["layer_longitude"], layer["layer_latitude"]]}
+    {String.to_atom(layer["coordinates_format"]), layer["layer_lng_lat"]}
   end
+
+  defp add_source_function(:geo), do: :add_geo_source
+  defp add_source_function(:table), do: :add_table_source
+  defp add_source_function(_), do: :add_source
 
   defp missing_dep() do
     unless Code.ensure_loaded?(MapLibre) do
@@ -371,9 +340,8 @@ defmodule KinoMapLibre.MapCell do
         "layer_color" => "black",
         "layer_opacity" => 1,
         "layer_radius" => 10,
+        "coordinates_format" => "lng_lat",
         "layer_lng_lat" => nil,
-        "coordinates_format" => "lng-lat",
-        "coordinates_type" => "combined",
         "layer_longitude" => nil,
         "layer_latitude" => nil
       }
