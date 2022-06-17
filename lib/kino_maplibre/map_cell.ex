@@ -360,10 +360,9 @@ defmodule KinoMapLibre.MapCell do
 
   defp columns_for(data) do
     with true <- implements?(Table.Reader, data),
-         {_, %{columns: columns}, _} <- Table.Reader.init(data) do
-      for column <- columns do
-        if is_atom(column), do: Atom.to_string(column), else: column
-      end
+         {_, %{columns: columns}, _} <- Table.Reader.init(data),
+         [_ | _] = filtered <- Enum.filter(columns, &(is_atom(&1) or is_binary(&1))) do
+      filtered
     else
       _ -> nil
     end
