@@ -24,7 +24,7 @@ defmodule KinoMapLibre.MapCell do
       "zoom" => attrs["zoom"] || 0
     }
 
-    layers = attrs["layers"] || new_layer()
+    layers = attrs["layers"] || default_layer()
 
     ctx =
       assign(ctx,
@@ -132,8 +132,8 @@ defmodule KinoMapLibre.MapCell do
     %{"layer_source" => layer_source, "source_type" => source_type} =
       List.first(ctx.assigns.layers)
 
-    updated_layers = ctx.assigns.layers ++ new_layer(layer_source, source_type)
-    ctx = update_in(ctx.assigns, fn assigns -> Map.put(assigns, :layers, updated_layers) end)
+    updated_layers = ctx.assigns.layers ++ default_layer(layer_source, source_type)
+    ctx = %{ctx | assigns: %{ctx.assigns | layers: updated_layers}}
     broadcast_event(ctx, "set_layers", %{"layers" => updated_layers})
 
     {:noreply, ctx}
@@ -141,7 +141,7 @@ defmodule KinoMapLibre.MapCell do
 
   def handle_event("remove_layer", %{"layer" => idx}, ctx) do
     updated_layers = List.delete_at(ctx.assigns.layers, idx)
-    ctx = update_in(ctx.assigns, fn assigns -> Map.put(assigns, :layers, updated_layers) end)
+    ctx = %{ctx | assigns: %{ctx.assigns | layers: updated_layers}}
     broadcast_event(ctx, "set_layers", %{"layers" => updated_layers})
 
     {:noreply, ctx}
@@ -187,7 +187,6 @@ defmodule KinoMapLibre.MapCell do
     ctx.assigns.root_fields
     |> Map.put("layers", ctx.assigns.layers)
     |> Map.put("ml_alias", ctx.assigns.ml_alias)
-    |> Map.put("variables", ctx.assigns.source_variables)
   end
 
   @impl true
@@ -332,7 +331,7 @@ defmodule KinoMapLibre.MapCell do
     end
   end
 
-  defp new_layer(layer_source \\ nil, source_type \\ nil) do
+  defp default_layer(layer_source \\ nil, source_type \\ nil) do
     [
       %{
         "layer_id" => nil,
@@ -361,9 +360,10 @@ defmodule KinoMapLibre.MapCell do
 
   defp columns_for(data) do
     with true <- implements?(Table.Reader, data),
-         {_, %{columns: columns}, _} <- Table.Reader.init(data),
-         true <- Enum.all?(columns, &implements?(String.Chars, &1)) do
-      Enum.map(columns, &to_string/1)
+         {_, %{columns: columns}, _} <- Table.Reader.init(data) do
+      for column <- columns do
+        if is_atom(column), do: Atom.to_string(column), else: column
+      end
     else
       _ -> nil
     end
