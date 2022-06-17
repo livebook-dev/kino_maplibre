@@ -227,9 +227,12 @@ defmodule KinoMapLibre.MapCell do
               )
           }
 
+    valid_sources = Enum.map(sources, &if(&1.args, do: hd(&1.args)))
+
     layers =
       for layer <- layers,
           layer = Map.new(layer, fn {k, v} -> convert_field(k, v) end),
+          layer.layer_source in valid_sources,
           do: %{
             field: :layer,
             name: :add_layer,
@@ -275,6 +278,8 @@ defmodule KinoMapLibre.MapCell do
   defp build_arg_source(nil, _, _, _), do: nil
   defp build_arg_source(_, nil, _, _), do: nil
   defp build_arg_source(_, _, :table, {_, nil}), do: nil
+  defp build_arg_source(_, _, :table, {_, [nil, _nil]}), do: nil
+  defp build_arg_source(_, _, :table, {_, [_, nil]}), do: nil
 
   defp build_arg_source(id, data, :geo, _),
     do: [id, Macro.var(String.to_atom(data), nil)]
