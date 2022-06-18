@@ -246,6 +246,9 @@ defmodule KinoMapLibre.MapCell do
               )
           }
 
+    used_sources = Enum.map(layers, &if(&1.args, do: hd(&1.args)[:source]))
+    sources = Enum.filter(sources, &(&1.args && hd(&1.args) in used_sources))
+
     nodes = sources ++ layers
 
     root = build_root(root)
