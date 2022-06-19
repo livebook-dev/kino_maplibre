@@ -27,7 +27,7 @@
 
 .row {
   display: flex;
-  gap: 18px;
+  gap: 16px;
 }
 
 .root {
@@ -114,7 +114,11 @@ input[type=number] {
   display: flex;
   flex-direction: column;
   margin-bottom: 16px;
-  max-width: 200px;
+  max-width: 160px;
+}
+
+.row--sm .field {
+  max-width: 130px;
 }
 
 .root-field {
