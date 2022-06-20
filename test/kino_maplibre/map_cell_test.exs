@@ -1,21 +1,68 @@
 defmodule KinoMapLibre.MapCellTest do
   use ExUnit.Case, async: true
 
+  import Kino.Test
+
   alias KinoMapLibre.MapCell
 
+  setup :configure_livebook_bridge
+
   @root %{"style" => nil, "center" => nil, "zoom" => 0, "ml_alias" => MapLibre}
-  @layer %{
+  @default_layer %{
     "layer_id" => nil,
     "layer_source" => nil,
+    "source_type" => nil,
     "layer_type" => "circle",
     "layer_color" => "black",
     "layer_opacity" => 1,
-    "layer_radius" => 10
+    "layer_radius" => 10,
+    "coordinates_format" => "lng_lat",
+    "source_coordinates" => nil,
+    "source_longitude" => nil,
+    "source_latitude" => nil
   }
+
+  test "finds supported data in binding and sends new options to the client" do
+    {kino, _source} = start_smart_cell!(MapCell, %{})
+
+    earthquakes = %{
+      "latitude" => [32.3646, 32.3357, -9.0665, 52.0779, -57.7326],
+      "longitude" => [101.8781, 101.8413, -71.2103, 178.2851, 148.6945],
+      "mag" => [5.9, 5.6, 6.5, 6.3, 6.4]
+    }
+
+    conferences = %{
+      "coordinates" => ["100.4933, 13.7551", "6.6523, 46.5535", "-123.3596, 48.4268"],
+      "year" => [2004, 2005, 2007]
+    }
+
+    point = %Geo.Point{coordinates: {100.4933, 13.7551}, properties: %{year: 2004}}
+    quakes = "https://maplibre.org/maplibre-gl-js-docs/assets/earthquakes.geojson"
+
+    binding = [earthquakes: earthquakes, conferences: conferences, point: point, quakes: quakes]
+    # TODO: Use Code.env_for_eval on Elixir v1.14+
+    env = :elixir.env_for_eval([])
+    MapCell.scan_binding(kino.pid, binding, env)
+
+    data_options = [
+      %{columns: ["latitude", "longitude", "mag"], type: "table", variable: "earthquakes"},
+      %{columns: ["coordinates", "year"], type: "table", variable: "conferences"},
+      %{columns: nil, type: "geo", variable: "point"},
+      %{columns: nil, type: nil, variable: "quakes"}
+    ]
+
+    assert_broadcast_event(kino, "set_source_variables", %{
+      "source_variables" => ^data_options,
+      "fields" => %{
+        "layer_source" => "earthquakes",
+        "source_type" => "table"
+      }
+    })
+  end
 
   describe "code generation" do
     test "source for a default empty map" do
-      attrs = Map.merge(@root, %{"layers" => [@layer]})
+      attrs = Map.merge(@root, %{"layers" => [@default_layer]})
 
       assert MapCell.to_source(attrs) == """
              MapLibre.new()\
@@ -26,7 +73,7 @@ defmodule KinoMapLibre.MapCellTest do
       attrs =
         @root
         |> Map.merge(%{"zoom" => 3, "center" => "-74.5, 40"})
-        |> Map.merge(%{"layers" => [@layer]})
+        |> Map.merge(%{"layers" => [@default_layer]})
 
       assert MapCell.to_source(attrs) == """
              MapLibre.new(center: {-74.5, 40.0}, zoom: 3)\
@@ -39,11 +86,10 @@ defmodule KinoMapLibre.MapCellTest do
         "layer_source" => "urban_areas",
         "layer_type" => "fill",
         "layer_color" => "green",
-        "layer_opacity" => 0.5,
-        "layer_radius" => 10
+        "layer_opacity" => 0.5
       }
 
-      attrs = Map.merge(@root, %{"layers" => [layer]})
+      attrs = build_attrs(layer)
 
       assert MapCell.to_source(attrs) == """
              MapLibre.new()
@@ -76,7 +122,7 @@ defmodule KinoMapLibre.MapCellTest do
         "layer_radius" => 10
       }
 
-      attrs = Map.merge(@root, %{"layers" => [layer_urban, layer_rwanda]})
+      attrs = build_layers_attrs([layer_urban, layer_rwanda])
 
       assert MapCell.to_source(attrs) == """
              MapLibre.new()
@@ -102,12 +148,11 @@ defmodule KinoMapLibre.MapCellTest do
         "layer_id" => "earthquakes-heatmap",
         "layer_source" => "earthquakes",
         "layer_type" => "heatmap",
-        "layer_color" => "black",
         "layer_opacity" => 0.5,
         "layer_radius" => 5
       }
 
-      attrs = Map.merge(@root, %{"layers" => [layer]})
+      attrs = build_attrs(layer)
 
       assert MapCell.to_source(attrs) == """
              MapLibre.new()
@@ -126,13 +171,11 @@ defmodule KinoMapLibre.MapCellTest do
         "layer_id" => "earthquakes-heatmap",
         "layer_source" => "earthquakes",
         "source_type" => "geo",
-        "layer_type" => "circle",
         "layer_color" => "green",
-        "layer_opacity" => 0.7,
-        "layer_radius" => 10
+        "layer_opacity" => 0.7
       }
 
-      attrs = Map.merge(@root, %{"layers" => [layer]})
+      attrs = build_attrs(layer)
 
       assert MapCell.to_source(attrs) == """
              MapLibre.new()
@@ -151,15 +194,13 @@ defmodule KinoMapLibre.MapCellTest do
         "layer_id" => "earthquakes",
         "layer_source" => "earthquakes",
         "source_type" => "table",
-        "layer_type" => "circle",
         "layer_color" => "green",
         "layer_opacity" => 0.7,
-        "layer_radius" => 10,
         "source_coordinates" => "coordinates",
         "coordinates_format" => "lat_lng"
       }
 
-      attrs = Map.merge(@root, %{"layers" => [layer]})
+      attrs = build_attrs(layer)
 
       assert MapCell.to_source(attrs) == """
              MapLibre.new()
@@ -172,5 +213,17 @@ defmodule KinoMapLibre.MapCellTest do
              )\
              """
     end
+  end
+
+  defp build_attrs(root_attrs \\ %{}, layer_attrs) do
+    root_attrs = Map.merge(@root, root_attrs)
+    layer_attrs = Map.merge(@default_layer, layer_attrs)
+    Map.put(root_attrs, "layers", [layer_attrs])
+  end
+
+  defp build_layers_attrs(root_attrs \\ %{}, layer_attrs) do
+    root_attrs = Map.merge(@root, root_attrs)
+    layer_attrs = Enum.map(layer_attrs, &Map.merge(@default_layer, &1))
+    Map.put(root_attrs, "layers", layer_attrs)
   end
 end
