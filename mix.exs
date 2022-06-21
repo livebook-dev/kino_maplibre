@@ -28,8 +28,10 @@ defmodule KinoMapLibre.MixProject do
   defp deps do
     [
       {:kino, "~> 0.6.1"},
+      {:table, "~> 0.1.0"},
       {:maplibre, github: "cristineguadelupe/maplibre"},
-      {:ex_doc, "~> 0.28", only: :dev, runtime: false}
+      {:ex_doc, "~> 0.28", only: :dev, runtime: false},
+      {:geo, "~> 3.4", only: :test}
     ]
   end
 

@@ -13,8 +13,8 @@
   --gray-800: #1c2a3a;
 
   --blue-100: #ecf0ff;
-  --blue-600: #3e64ff;
-  --blue-700: #2d4cdb;
+
+  --red--300: #F1A3A6;
 }
 
 .container {
@@ -27,7 +27,7 @@
 
 .row {
   display: flex;
-  gap: 24px;
+  gap: 16px;
 }
 
 .root {
@@ -62,16 +62,21 @@ input[type=number] {
   border: 1px solid var(--gray-300);
 }
 
-.input:disabled {
-  opacity: 50%;
-}
-
 .input-label {
   display: block;
   margin-bottom: 2px;
   font-size: 0.875rem;
   color: var(--gray-800);
   font-weight: 500;
+}
+
+.required {
+  border: 1px solid var(--red--300);
+}
+
+.input:disabled {
+  opacity: 50%;
+  border: 1px solid var(--gray-300);
 }
 
 .input--md {
@@ -109,6 +114,11 @@ input[type=number] {
   display: flex;
   flex-direction: column;
   margin-bottom: 16px;
+  max-width: 160px;
+}
+
+.row--sm .field {
+  max-width: 130px;
 }
 
 .root-field {
@@ -119,6 +129,7 @@ input[type=number] {
   flex-grow: 0.5;
   flex-basis: 30%;
   margin-bottom: 0;
+  max-width: 300px;
 }
 
 .root-field:first-child {
@@ -330,9 +341,8 @@ input::-webkit-inner-spin-button {
 .radio-group {
   font-size: 0.75rem;
   display: flex;
-  position: absolute;
-  left: 50%;
-  width: 200px;
+  flex-direction: column;
+  padding-top: 15px;
 }
 
 .radio-wrapper {
