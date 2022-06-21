@@ -369,8 +369,8 @@ defmodule KinoMapLibre.MapCell do
   defp columns_for(data) do
     with true <- implements?(Table.Reader, data),
          {_, %{columns: columns}, _} <- Table.Reader.init(data),
-         [_ | _] = filtered <- Enum.filter(columns, &(is_atom(&1) or is_binary(&1))) do
-      filtered
+         true <- Enum.all?(columns, &implements?(String.Chars, &1)) do
+      Enum.map(columns, &to_string/1)
     else
       _ -> nil
     end
