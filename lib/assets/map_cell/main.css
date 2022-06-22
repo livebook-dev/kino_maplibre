@@ -115,7 +115,7 @@ input[type=number] {
   display: flex;
   flex-direction: column;
   margin-bottom: 16px;
-  max-width: 160px;
+
 }
 
 .field:first-child {
@@ -123,7 +123,7 @@ input[type=number] {
 }
 
 .row--sm .field {
-  max-width: 130px;
+  max-width: 150px;
 }
 
 .root-field {
@@ -134,11 +134,45 @@ input[type=number] {
   flex-grow: 0.5;
   flex-basis: 30%;
   margin-bottom: 0;
-  max-width: 300px;
 }
 
 .root-field:first-child {
   justify-content: start;
+}
+
+.inline-field {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: start;
+  border: none;
+  margin-bottom: 2;
+}
+
+.inline-field .input-label {
+  color: var(--gray-700);
+  font-weight: 400;
+  padding-right: 6px;
+}
+
+.inline-field input {
+  border-bottom: 1px solid var(--gray-300);
+  background: transparent;
+  border-radius: 0;
+  position: relative;
+  bottom: 4px;
+  padding-bottom: 2px;
+}
+
+.inline-field .required {
+  border-bottom: 1px solid var(--red--300);
+  border-radius: 0;
+}
+
+.inline-field:focus {
+  outline: none;
+  border: none;
+  border-bottom: 1px solid var(--gray-500);
 }
 
 .button {
@@ -172,6 +206,7 @@ input[type=number] {
   background: transparent;
   position: relative;
   left: 10px;
+  bottom: 6px;
 }
 
 .button--sm:hover {
@@ -249,11 +284,13 @@ input::-webkit-inner-spin-button {
   justify-content: space-between;
   text-transform: uppercase;
   font-size: 0.875rem;
-  padding: 0.25rem 0.25rem;
+  padding: 0;
+  padding-right: 0.25rem;
+  padding-top: 0.25rem;
   width: auto;
   flex-grow: 1;
   color: var(--gray-700);
-  margin-bottom: 6px;
+  margin-bottom: 0px;
 }
 
 .button-svg {
@@ -299,7 +336,6 @@ input::-webkit-inner-spin-button {
   justify-content: flex-end;
 }
 
-
 .rangeValue {
   position: relative;
   display: block;
@@ -331,7 +367,7 @@ input::-webkit-inner-spin-button {
 }
 
 .layers {
-  padding-top: 12px;
+  padding-top: 0px;
 }
 
 .zoomValue {
