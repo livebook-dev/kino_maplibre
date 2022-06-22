@@ -2,8 +2,8 @@
 
 ```elixir
 Mix.install([
-  {:kino_maplibre, github: "cristineguadelupe/kino_maplibre"},
-  {:maplibre, github: "cristineguadelupe/maplibre"},
+  {:kino_maplibre, github: "livebook-dev/kino_maplibre"},
+  {:maplibre, github: "livebook-dev/maplibre"},
   {:geo, "~> 3.4"}
 ])
 ```
@@ -540,4 +540,91 @@ Ml.new()
   "custom-marker",
   "https://maplibre.org/maplibre-gl-js-docs/assets/osgeo-logo.png"
 )
+```
+
+## Tabular data
+
+You can plot tabular data directly on the map without any extra steps or conversion.
+
+At this point, only points are supported and your data must have the coordinates information in a column or in a pair of columns. For coordinates combined in a single column, the most common formats are well supported, such as `"-123.3596, 48.4268"`, `"-123.3596; 48.4268"` or even `"POINT(-123.3596 48.4268)"`. In addition, the data source needs to implement the [Table](https://hexdocs.pm/table/Table.html) protocol.
+
+To put the data as a source on the map, use the `add_table_source/4` function by giving the data as the third argument and a tuple with the coordinates information as the fourth. Geometry properties are supported through the function `add_table_source/5`. Just pass the list of columns you want to add as properties as the last argument.
+
+```elixir
+earthquakes = %{
+  "latitude" => [
+    32.3646,
+    32.3357,
+    -9.0665,
+    52.0779,
+    -57.7326,
+    -17.9665,
+    38.0765,
+    30.4155,
+    -8.2486,
+    -22.8588,
+    -14.8628,
+    19.6403333333333,
+    -26.2067,
+    14.0187,
+    -54.1373
+  ],
+  "longitude" => [
+    101.8781,
+    101.8413,
+    -71.2103,
+    178.2851,
+    148.6945,
+    -174.9684,
+    -122.0076667,
+    102.9892,
+    127.2072,
+    172.1235,
+    -70.3081,
+    -155.968666666667,
+    178.4435,
+    120.6494,
+    159.0844
+  ],
+  "mag" => [5.9, 5.6, 6.5, 6.3, 6.4, 6.3, 4.14, 5.9, 6.2, 6.4, 7.2, 4.67, 6.3, 6.1, 6.9],
+  "place" => [
+    "248 km NW of Tianpeng, China",
+    "248 km NW of Tianpeng, China",
+    "111 km SSW of Tarauacá, Brazil",
+    "Rat Islands, Aleutian Islands, Alaska",
+    "west of Macquarie Island",
+    "128 km NW of Neiafu, Tonga",
+    "7km NW of Bay Point, CA",
+    "45 km W of Linqiong, China",
+    "37 km NE of Lospalos, Timor Leste",
+    "southeast of the Loyalty Islands",
+    "13 km WNW of Azángaro, Peru",
+    "3 km NW of Hōlualoa, Hawaii",
+    "south of the Fiji Islands",
+    "1 km S of Lian, Philippines",
+    "Macquarie Island region"
+  ]
+}
+
+Ml.new()
+|> Ml.add_table_source(
+  "earthquakes",
+  earthquakes,
+  {:lat_lng, ["latitude", "longitude"]},
+  ["place", "mag"]
+)
+|> Ml.add_layer(
+  id: "earthquakes",
+  source: "earthquakes",
+  type: :circle,
+  paint: [circle_color: "brown", circle_opacity: 1, circle_radius: 12]
+)
+|> Ml.add_layer(
+  id: "earthquakes_mag",
+  source: "earthquakes",
+  type: :symbol,
+  layout: [text_field: ["get", "mag"], text_size: 10],
+  paint: [text_color: "white"]
+)
+|> Kino.MapLibre.info_on_click("earthquakes", "place")
 ```
