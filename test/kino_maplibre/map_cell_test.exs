@@ -15,7 +15,7 @@ defmodule KinoMapLibre.MapCellTest do
     "layer_type" => "circle",
     "layer_color" => "black",
     "layer_opacity" => 1,
-    "layer_radius" => 10,
+    "layer_radius" => 5,
     "coordinates_format" => "lng_lat",
     "source_coordinates" => nil,
     "source_longitude" => nil,
@@ -184,7 +184,7 @@ defmodule KinoMapLibre.MapCellTest do
                id: "earthquakes-heatmap",
                source: "earthquakes",
                type: :circle,
-               paint: [circle_color: "green", circle_opacity: 0.7]
+               paint: [circle_color: "green", circle_radius: 5, circle_opacity: 0.7]
              )\
              """
     end
@@ -209,7 +209,7 @@ defmodule KinoMapLibre.MapCellTest do
                id: "earthquakes",
                source: "earthquakes",
                type: :circle,
-               paint: [circle_color: "green", circle_opacity: 0.7]
+               paint: [circle_color: "green", circle_radius: 5, circle_opacity: 0.7]
              )\
              """
     end
