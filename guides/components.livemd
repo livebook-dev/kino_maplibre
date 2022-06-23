@@ -75,3 +75,9 @@ Let's add navigation controls on the fly!
 ```elixir
 Kino.MapLibre.add_nav_controls(map)
 ```
+
+## Smart cells
+
+The following Smart cells are available:
+
+* **Map cell** - for building maps with geojson data
