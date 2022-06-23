@@ -304,6 +304,10 @@ defmodule KinoMapLibre.MapCell do
     [heatmap_radius: radius, heatmap_opacity: opacity]
   end
 
+  defp build_arg_paint(:circle, {color, radius, opacity}) do
+    [circle_color: color, circle_radius: radius, circle_opacity: opacity]
+  end
+
   defp build_arg_paint(type, {color, _radius, opacity}) do
     ["#{type}_color": color, "#{type}_opacity": opacity]
   end
@@ -348,7 +352,7 @@ defmodule KinoMapLibre.MapCell do
         "layer_type" => "circle",
         "layer_color" => "black",
         "layer_opacity" => 1,
-        "layer_radius" => 10,
+        "layer_radius" => 5,
         "coordinates_format" => "lng_lat",
         "source_coordinates" => nil,
         "source_longitude" => nil,
