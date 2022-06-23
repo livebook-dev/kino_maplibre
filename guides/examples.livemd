@@ -17,7 +17,7 @@ To work with maps in Livebook we need two libraries:
 
 * The [`kino_maplibre`](https://github.com/cristineguadelupe/Kino_maplibre) package instructs Livebook how to render our specifications and also provides some initial support for [MapLibre Evented API](https://maplibre.org/maplibre-gl-js-docs/api/events/#evented)
 
-All the necessary dependencies are already declared in the setup cell. `:geo` is optional, you only need this if you want to use the [Geo integration](#geo-package-integration) we offer
+All the necessary dependencies are already declared in the setup cell. The `geo` package is optional, you only need this if you want to use the Geo integration [discussed later in this notebook](#geo-package-integration).
 
 We will make extensive use of MapLibre's functions, so it's handy to call the module something shorter.
 
@@ -27,15 +27,13 @@ alias MapLibre, as: Ml
 
 ## Simple maps
 
-Calling the `Ml.new()` function without any argument will render a simple map with all root properties at their default values and the basic style provided by [MapLibre](https://demotiles.maplibre.org/style.json) that will be automatically loaded for you.
+Calling the `Ml.new/0` function with no arguments will render a simple map with all root properties at their default values and the basic style provided by [MapLibre](https://demotiles.maplibre.org/style.json) that will be automatically loaded for you.
 
 ```elixir
 Ml.new()
 ```
 
-You can easily override this initial style by declaring your own style using the `:style` option as well as any other root-level properties you wish to configure.
-
-Styles are accepted as `url`, `json` or `Map`.
+You can easily override this initial style by declaring your own style using the `:style` option as well as any other root-level properties you wish to configure. It can be either a URL, a JSON string or a map.
 
 Even though that's not the most recommended tool, you can start a blank style by passing an empty map to create your style totally from scratch.
 
@@ -58,21 +56,20 @@ Ml.new(style: street_style, zoom: 2)
 Quite succinctly, sources specify the map's data while layers define how this data will be displayed.
 
 > Adding a source isn't enough to make data appear on the map because sources don't contain styling details like color or width. Layers refer to a source and give it a visual representation. This makes it possible to style the same source in different ways, like differentiating between types of roads in a highways layer.
-> 
+>
 > -- <cite>[Sources documentation](https://maplibre.org/maplibre-gl-js-docs/style-spec/sources/)</cite>
 
 > A style's layers property lists all the layers available in that style. The type of layer is specified by the "type" property, and must be one of background, fill, line, symbol, raster, circle, fill-extrusion, heatmap, hillshade.
-> 
+>
 > Except for layers of the background type, each layer needs to refer to a source. Layers take the data that they get from a source, optionally filter features, and then define how those features are styled.
-> 
+>
 > -- <cite>[Layers documentation](https://maplibre.org/maplibre-gl-js-docs/style-spec/layers/)
 
 Sources and layers are the core of a map. For this reason, we have a set of functions to make it straightforward to work with them.
 
-Let's add some coordinate data and use `Ml.add_source()` and `Ml.add_layer()` to render GeoJson lines and polygons.
+Let's add some coordinate data to render GeoJson lines and polygons.
 
 ```elixir
-# For type "Polygon", the "coordinates" member MUST be an array of linear ring coordinate arrays.
 polygon_coordinates = [
   [
     {-67.13734351262877, 45.137451890638886},
@@ -123,7 +120,7 @@ line_coordinates = [
 ]
 ```
 
-We use the `Ml.add_source()` to add and make the data available and the `Ml.add_layer()` to style them and it visible.
+We use `Ml.add_source/3` to make the data available and then `Ml.add_layer/2` to present it visually.
 
 ```elixir
 Ml.new(center: {-122.486052, 37.830348}, zoom: 15, style: street_style)
@@ -152,7 +149,7 @@ Ml.new(center: {-122.486052, 37.830348}, zoom: 15, style: street_style)
 )
 ```
 
-Layers are rendered from the top down following the order they were added. While this solution is ideal for most cases, some layers look better if rendered below the labels. For these cases, use the `Ml.add_layer_below_labels()` function.
+Layers are rendered from the top down following the order they were added. While this solution is ideal for most cases, some layers look better if rendered below the labels. For these cases, use `Ml.add_layer_below_labels/2` function.
 
 ```elixir
 Ml.new(center: {-68.13734351262877, 45.137451890638886}, zoom: 5, style: street_style)
@@ -192,10 +189,10 @@ Ml.new(center: {-68.13734351262877, 45.137451890638886}, zoom: 5, style: street_
 
 ## Expressions
 
-[Expressions](https://maplibre.org/maplibre-gl-js-docs/style-spec/expressions/) are a powerful way to render quite complex maps through only style specifications.
+[Expressions](https://maplibre.org/maplibre-gl-js-docs/style-spec/expressions/) are a powerful way to render quite complex maps solely through style specifications.
 We can use expressions to define a formula for computing the value for any `layout`, `paint` or `filter` property.
 
-If the layer you want to make more dynamic through expressions already exists on the map, you can use the `Ml.update_layer()` to update the respective layer.
+If the layer you want to make more dynamic through expressions already exists on the map, you can use `Ml.update_layer/3` to update the respective layer.
 
 In the following map, we update the `paint` property of the `building` layer so that its colors change according to the zoom level.
 
@@ -213,7 +210,7 @@ Ml.new(
 )
 ```
 
-Another great example using only expressions to show the population density of a region.
+Another great example of using expressions is showing the population density of a region.
 
 ```elixir
 Ml.new(center: {30.0222, -1.9596}, zoom: 7, style: street_style)
@@ -306,14 +303,14 @@ Ml.new(
 
 ## Interactive maps
 
-As said before, the `MapLibre` package covers all the style specification, but for the interactivity of the [Evented api](https://maplibre.org/maplibre-gl-js-docs/api/events/#evented) we need `Kino.MapLibre`.
+As said before, the `MapLibre` package covers all the style specification, but for the interactivity of the [Evented API](https://maplibre.org/maplibre-gl-js-docs/api/events/#evented) we need `Kino.MapLibre`.
 
 `Kino.MapLibre` supports two types of maps: static and dynamic. Essentially, a dynamic map can be updated on
   the fly without having to be re-evaluated. To make a map dynamic you need to wrap it in `Kino.MapLibre.new/1`
 
 Static maps will cover most use cases, and all `Kino.MapLibre` functions are available for both map types.
 
-`Kino.MapLibre` does not currently cover everything the evented API can offer, but let's see what we already support.
+`Kino.MapLibre` does not currently cover everything the Evented API can offer, but let's see what is already supported.
 
 <!-- livebook:{"break_markdown":true} -->
 
@@ -439,30 +436,31 @@ We have wrapped the above map in `Kino.MapLibre.new/1` which makes it dynamic, s
 When we evaluate the cell below, the marker will be added without the need to re-evaluate the map cell itself.
 
 ```elixir
-# Change the marker color and reevaluate only this cell
+# Change the marker color or location and reevaluate this cell
 Kino.MapLibre.add_marker(map, {-68, 45}, color: "purple", draggable: true)
 ```
 
-You can make a static map dynamic at any moment wrapping it in `Kino.MapLibre.new/1`
+You can make a static map dynamic at any moment by wrapping it in `Kino.MapLibre.new/1`
 
 ```elixir
 map =
   Ml.new(center: {-68.13734351262877, 45.137451890638886}, zoom: 3)
-  # These markers will be added on evaluation
+  # These markers will appear on the initial map render
   |> Kino.MapLibre.add_marker({-68, 45}, color: "red", draggable: true)
   |> Kino.MapLibre.add_marker({-69, 50})
-  # This makes the map dynamic
+  # This makes the map dynamic for further interactions
   |> Kino.MapLibre.new()
 ```
 
+Let's add navigation controls on the fly!
+
 ```elixir
-# This navigation controls will be added on the fly
 Kino.MapLibre.add_nav_controls(map)
 ```
 
 ## Geo package integration
 
-You can easily add `:geojson` sources to your map using the [Geo](https://hexdocs.pm/geo/readme.html) package. All geometries and collections are supported.
+You can easily add GeoJSON sources to your map using the [Geo](https://hexdocs.pm/geo/readme.html) package. All geometries and collections are supported.
 
 Just use the `add_geo_source/3` function by giving the geometry or collection as third argument. The type will be detected automatically.
 
