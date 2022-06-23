@@ -36,44 +36,41 @@ Map Cell helps you plot rich maps without needing to know the Maplibre API's det
 Map Cell accepts `:geojson` data sources as url, [Geo](#geo-package-integration) structs or [tabular data](#tabular-data).
 
 ```elixir
-# URL
 urban_areas =
   "https://d2ad6b4ur7yvpq.cloudfront.net/naturalearth-3.3.0/ne_50m_urban_areas.geojson"
 
-# Geo struct
 conference = %Geo.Point{coordinates: {-123.3596, 48.4268}, properties: %{year: 2007}}
 
-# Tabular data
 earthquakes = %{
-  "coordinates" => ["32.3646, 101.8781", "32.3357, 101.8413", "-9.0665, -71.2103"],
-  "mag" => [5.9, 5.6, 6.5]
+  "coordinates" => ["32.3357, 101.8413", "-9.0665, -71.2103", "52.0779, 178.2851"],
+  "mag" => [5.6, 6.5, 6.3]
 }
 ```
 
-<!-- livebook:{"attrs":{"center":null,"layers":[{"coordinates_format":"lng_lat","layer_color":"magenta","layer_id":"urban_areas","layer_opacity":1,"layer_radius":10,"layer_source":"urban_areas","layer_type":"fill","source_coordinates":null,"source_latitude":null,"source_longitude":null,"source_type":null},{"coordinates_format":"lat_lng","layer_color":"black","layer_id":"earthquakes","layer_opacity":1,"layer_radius":10,"layer_source":"earthquakes","layer_type":"circle","source_coordinates":"coordinates","source_latitude":null,"source_longitude":null,"source_type":"table"},{"coordinates_format":"lng_lat","layer_color":"green","layer_id":"conference","layer_opacity":1,"layer_radius":10,"layer_source":"conference","layer_type":"circle","source_coordinates":null,"source_latitude":null,"source_longitude":null,"source_type":"geo"}],"ml_alias":"Elixir.MapLibre","style":"default","zoom":0},"kind":"Elixir.KinoMapLibre.MapCell","livebook_object":"smart_cell"} -->
+<!-- livebook:{"attrs":{"center":null,"layers":[{"coordinates_format":"lng_lat","layer_color":"magenta","layer_id":"urban_areas","layer_opacity":1,"layer_radius":10,"layer_source":"urban_areas","layer_type":"fill","source_coordinates":null,"source_latitude":null,"source_longitude":null,"source_type":null},{"coordinates_format":"lat_lng","layer_color":"black","layer_id":"earthquakes","layer_opacity":1,"layer_radius":5,"layer_source":"earthquakes","layer_type":"circle","source_coordinates":"coordinates","source_latitude":null,"source_longitude":null,"source_type":"table"},{"coordinates_format":"lng_lat","layer_color":"green","layer_id":"conference","layer_opacity":1,"layer_radius":10,"layer_source":"conference","layer_type":"circle","source_coordinates":null,"source_latitude":null,"source_longitude":null,"source_type":"geo"}],"ml_alias":"Elixir.Ml","style":"default","zoom":0},"kind":"Elixir.KinoMapLibre.MapCell","livebook_object":"smart_cell"} -->
 
 ```elixir
-MapLibre.new()
-|> MapLibre.add_source("urban_areas", type: :geojson, data: urban_areas)
-|> MapLibre.add_table_source("earthquakes", earthquakes, {:lat_lng, "coordinates"})
-|> MapLibre.add_geo_source("conference", conference)
-|> MapLibre.add_layer(
+Ml.new()
+|> Ml.add_source("urban_areas", type: :geojson, data: urban_areas)
+|> Ml.add_table_source("earthquakes", earthquakes, {:lat_lng, "coordinates"})
+|> Ml.add_geo_source("conference", conference)
+|> Ml.add_layer(
   id: "urban_areas",
   source: "urban_areas",
   type: :fill,
   paint: [fill_color: "magenta", fill_opacity: 1]
 )
-|> MapLibre.add_layer(
+|> Ml.add_layer(
   id: "earthquakes",
   source: "earthquakes",
   type: :circle,
-  paint: [circle_color: "black", circle_opacity: 1]
+  paint: [circle_color: "black", circle_radius: 5, circle_opacity: 1]
 )
-|> MapLibre.add_layer(
+|> Ml.add_layer(
   id: "conference",
   source: "conference",
   type: :circle,
-  paint: [circle_color: "green", circle_opacity: 1]
+  paint: [circle_color: "green", circle_radius: 10, circle_opacity: 1]
 )
 ```
 
@@ -112,13 +109,13 @@ Ml.new(style: street_style, zoom: 2)
 Quite succinctly, sources specify the map's data while layers define how this data will be displayed.
 
 > Adding a source isn't enough to make data appear on the map because sources don't contain styling details like color or width. Layers refer to a source and give it a visual representation. This makes it possible to style the same source in different ways, like differentiating between types of roads in a highways layer.
->
+> 
 > -- <cite>[Sources documentation](https://maplibre.org/maplibre-gl-js-docs/style-spec/sources/)</cite>
 
 > A style's layers property lists all the layers available in that style. The type of layer is specified by the "type" property, and must be one of background, fill, line, symbol, raster, circle, fill-extrusion, heatmap, hillshade.
->
+> 
 > Except for layers of the background type, each layer needs to refer to a source. Layers take the data that they get from a source, optionally filter features, and then define how those features are styled.
->
+> 
 > -- <cite>[Layers documentation](https://maplibre.org/maplibre-gl-js-docs/style-spec/layers/)
 
 Sources and layers are the core of a map. For this reason, we have a set of functions to make it straightforward to work with them.
