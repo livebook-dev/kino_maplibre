@@ -25,6 +25,60 @@ We will make extensive use of MapLibre's functions, so it's handy to call the mo
 alias MapLibre, as: Ml
 ```
 
+<!-- livebook:{"branch_parent_index":0} -->
+
+## Map cell
+
+Map Cell is the [Smart Cell](https://news.livebook.dev/v0.6-automate-and-learn-with-smart-cells-mxJJe) for maps that's comes with `Kino_maplibre`.
+
+Map Cell helps you plot rich maps without needing to know the Maplibre API's details. Besides being a powerful tool for quickly building complex maps, the generated code is wholly valid, which means you can use it to learn more about the Maplibre library or even convert the Map Cell to an Elixir cell and add advanced features to the map without having to start it from scratch.
+
+Map Cell accepts `:geojson` data sources as url, [Geo](#geo-package-integration) structs or [tabular data](#tabular-data).
+
+```elixir
+# URL
+urban_areas =
+  "https://d2ad6b4ur7yvpq.cloudfront.net/naturalearth-3.3.0/ne_50m_urban_areas.geojson"
+
+# Geo struct
+conference = %Geo.Point{coordinates: {-123.3596, 48.4268}, properties: %{year: 2007}}
+
+# Tabular data
+earthquakes = %{
+  "coordinates" => ["32.3646, 101.8781", "32.3357, 101.8413", "-9.0665, -71.2103"],
+  "mag" => [5.9, 5.6, 6.5]
+}
+```
+
+<!-- livebook:{"attrs":{"center":null,"layers":[{"coordinates_format":"lng_lat","layer_color":"magenta","layer_id":"urban_areas","layer_opacity":1,"layer_radius":10,"layer_source":"urban_areas","layer_type":"fill","source_coordinates":null,"source_latitude":null,"source_longitude":null,"source_type":null},{"coordinates_format":"lat_lng","layer_color":"black","layer_id":"earthquakes","layer_opacity":1,"layer_radius":10,"layer_source":"earthquakes","layer_type":"circle","source_coordinates":"coordinates","source_latitude":null,"source_longitude":null,"source_type":"table"},{"coordinates_format":"lng_lat","layer_color":"green","layer_id":"conference","layer_opacity":1,"layer_radius":10,"layer_source":"conference","layer_type":"circle","source_coordinates":null,"source_latitude":null,"source_longitude":null,"source_type":"geo"}],"ml_alias":"Elixir.MapLibre","style":"default","zoom":0},"kind":"Elixir.KinoMapLibre.MapCell","livebook_object":"smart_cell"} -->
+
+```elixir
+MapLibre.new()
+|> MapLibre.add_source("urban_areas", type: :geojson, data: urban_areas)
+|> MapLibre.add_table_source("earthquakes", earthquakes, {:lat_lng, "coordinates"})
+|> MapLibre.add_geo_source("conference", conference)
+|> MapLibre.add_layer(
+  id: "urban_areas",
+  source: "urban_areas",
+  type: :fill,
+  paint: [fill_color: "magenta", fill_opacity: 1]
+)
+|> MapLibre.add_layer(
+  id: "earthquakes",
+  source: "earthquakes",
+  type: :circle,
+  paint: [circle_color: "black", circle_opacity: 1]
+)
+|> MapLibre.add_layer(
+  id: "conference",
+  source: "conference",
+  type: :circle,
+  paint: [circle_color: "green", circle_opacity: 1]
+)
+```
+
+<!-- livebook:{"branch_parent_index":0} -->
+
 ## Simple maps
 
 Calling the `Ml.new()` function without any argument will render a simple map with all root properties at their default values and the basic style provided by [MapLibre](https://demotiles.maplibre.org/style.json) that will be automatically loaded for you.
@@ -52,6 +106,8 @@ street_style =
 
 Ml.new(style: street_style, zoom: 2)
 ```
+
+<!-- livebook:{"branch_parent_index":0} -->
 
 ## Sources and Layers
 
@@ -190,6 +246,8 @@ Ml.new(center: {-68.13734351262877, 45.137451890638886}, zoom: 5, style: street_
 )
 ```
 
+<!-- livebook:{"branch_parent_index":0} -->
+
 ## Expressions
 
 [Expressions](https://maplibre.org/maplibre-gl-js-docs/style-spec/expressions/) are a powerful way to render quite complex maps through only style specifications.
@@ -261,6 +319,8 @@ Ml.new(center: {30.0222, -1.9596}, zoom: 7, style: street_style)
 )
 ```
 
+<!-- livebook:{"branch_parent_index":0} -->
+
 ## Heatmap
 
 ```elixir
@@ -303,6 +363,8 @@ Ml.new(
   ]
 )
 ```
+
+<!-- livebook:{"branch_parent_index":0} -->
 
 ## Interactive maps
 
@@ -460,6 +522,8 @@ map =
 Kino.MapLibre.add_nav_controls(map)
 ```
 
+<!-- livebook:{"branch_parent_index":0} -->
+
 ## Geo package integration
 
 You can easily add `:geojson` sources to your map using the [Geo](https://hexdocs.pm/geo/readme.html) package. All geometries and collections are supported.
@@ -541,6 +605,8 @@ Ml.new()
   "https://maplibre.org/maplibre-gl-js-docs/assets/osgeo-logo.png"
 )
 ```
+
+<!-- livebook:{"branch_parent_index":0} -->
 
 ## Tabular data
 
