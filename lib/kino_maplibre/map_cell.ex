@@ -363,6 +363,7 @@ defmodule KinoMapLibre.MapCell do
 
   defp is_geometry?(%module{}) when module in @geometries, do: true
   defp is_geometry?("http" <> url), do: url |> String.split(".") |> List.last() == "geojson"
+  defp is_geometry?("topojson" <> url), do: url |> String.split(".") |> List.last() == "json"
   defp is_geometry?(_), do: false
 
   defp is_table?(val), do: implements?(Table.Reader, val)
