@@ -13,23 +13,22 @@ defmodule KinoMapLibre.MixProject do
       elixir: "~> 1.13",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
-      docs: docs()
+      docs: docs(),
+      package: package()
     ]
   end
 
-  # Run "mix help compile.app" to learn about applications.
   def application do
     [
       mod: {KinoMapLibre.Application, []}
     ]
   end
 
-  # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
       {:kino, "~> 0.6.1"},
       {:table, "~> 0.1.0"},
-      {:maplibre, github: "livebook-dev/maplibre"},
+      {:maplibre, "~> 0.1.0"},
       {:ex_doc, "~> 0.28", only: :dev, runtime: false}
     ]
   end
@@ -45,6 +44,15 @@ defmodule KinoMapLibre.MixProject do
           Kino.MapLibre
         ]
       ]
+    ]
+  end
+
+  def package do
+    [
+      licenses: ["Apache-2.0"],
+      links: %{
+        "GitHub" => "https://github.com/livebook-dev/kino_maplibre"
+      }
     ]
   end
 end
