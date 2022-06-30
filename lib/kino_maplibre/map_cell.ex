@@ -223,7 +223,8 @@ defmodule KinoMapLibre.MapCell do
                 source.source_id,
                 source.source_data,
                 source.source_type,
-                source.source_coordinates
+                source.source_coordinates,
+                source.source_options
               )
           }
 
@@ -264,6 +265,7 @@ defmodule KinoMapLibre.MapCell do
   defp apply_node(%{args: nil}, acc), do: acc
 
   defp apply_node(%{field: _field, name: function, module: module, args: args}, acc) do
+    args = Enum.reject(args, & &1 == [])
     quote do
       unquote(acc) |> unquote(module).unquote(function)(unquote_splicing(args))
     end
@@ -278,23 +280,30 @@ defmodule KinoMapLibre.MapCell do
     end
   end
 
-  defp build_arg_source(nil, _, _, _), do: nil
-  defp build_arg_source(_, nil, _, _), do: nil
-  defp build_arg_source(_, _, :table, {_, nil}), do: nil
-  defp build_arg_source(_, _, :table, {_, [nil, _nil]}), do: nil
-  defp build_arg_source(_, _, :table, {_, [_, nil]}), do: nil
+  defp build_arg_source(nil, _, _, _, _), do: nil
+  defp build_arg_source(_, nil, _, _, _), do: nil
+  defp build_arg_source(_, _, :table, {_, nil}, _), do: nil
+  defp build_arg_source(_, _, :table, {_, [nil, _nil]}, _), do: nil
+  defp build_arg_source(_, _, :table, {_, [_, nil]}, _), do: nil
 
-  defp build_arg_source(id, data, :geo, _),
-    do: [id, Macro.var(String.to_atom(data), nil)]
+  defp build_arg_source(id, data, :geo, _, opts),
+    do: [id, Macro.var(String.to_atom(data), nil), opts]
 
-  defp build_arg_source(id, data, :table, coordinates),
-    do: [id, Macro.var(String.to_atom(data), nil), coordinates]
+  defp build_arg_source(id, data, :table, coordinates, opts),
+    do: [id, Macro.var(String.to_atom(data), nil), coordinates, opts]
 
-  defp build_arg_source(id, data, _, _),
-    do: [id, [type: :geojson, data: Macro.var(String.to_atom(data), nil)]]
+  defp build_arg_source(id, data, _, _, opts) do
+    args = [type: :geojson, data: Macro.var(String.to_atom(data), nil)]
+    args = if opts, do: Keyword.merge(args, opts), else: args
+    [id, args]
+  end
 
   defp build_arg_layer(nil, _, _, _), do: nil
   defp build_arg_layer(_, nil, _, _), do: nil
+
+  defp build_arg_layer(id, source, :cluster, {_, _, opacity}) do
+    [[id: id, source: source, type: :circle, paint: build_arg_paint(:cluster, opacity)]]
+  end
 
   defp build_arg_layer(id, source, type, {color, radius, opacity}) do
     [[id: id, source: source, type: type, paint: build_arg_paint(type, {color, radius, opacity})]]
@@ -312,13 +321,22 @@ defmodule KinoMapLibre.MapCell do
     ["#{type}_color": color, "#{type}_opacity": opacity]
   end
 
+  defp build_arg_paint(:cluster, opacity) do
+    [
+      circle_color: ["step", ["get", "point_count"], "#51bbd6", 100, "#f1f075", 750, "#f28cb1"],
+      circle_radius: ["step", ["get", "point_count"], 20, 100, 30, 750, 40],
+      circle_opacity: opacity
+    ]
+  end
+
   defp build_sources(layers) do
     for layer <- layers,
         do: %{
           "source_id" => layer["layer_source"],
           "source_data" => layer["layer_source"],
           "source_type" => layer["source_type"],
-          "source_coordinates" => source_coordinates(layer)
+          "source_coordinates" => source_coordinates(layer),
+          "source_options" => source_options(layer)
         },
         uniq: true
   end
@@ -332,6 +350,10 @@ defmodule KinoMapLibre.MapCell do
   end
 
   defp source_coordinates(_), do: nil
+
+
+  defp source_options(%{"layer_type" => "cluster"}), do: [cluster: true]
+  defp source_options(_), do: []
 
   defp add_source_function(:geo), do: :add_geo_source
   defp add_source_function(:table), do: :add_table_source
