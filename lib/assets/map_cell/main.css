@@ -393,3 +393,15 @@ input::-webkit-inner-spin-button {
 .radio-wrapper {
   margin-right: 5px;
 }
+
+.color-field {
+  padding: 0;
+  border-radius: 0;
+  margin: 0;
+  height: 45px;
+}
+
+.input-number {
+  width: 75px;
+  margin-right: 10px;
+}

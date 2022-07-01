@@ -5,7 +5,7 @@ defmodule KinoMapLibre.MapCell do
   use Kino.JS.Live
   use Kino.SmartCell, name: "Map"
 
-  @as_int ["zoom", "layer_radius"]
+  @as_int ["zoom", "layer_radius", "cluster_min", "cluster_max"]
   @as_atom ["layer_type", "source_type", "symbol_type"]
   @as_float ["layer_opacity"]
   @geometries [Geo.Point, Geo.LineString, Geo.Polygon, Geo.GeometryCollection]
@@ -244,7 +244,9 @@ defmodule KinoMapLibre.MapCell do
                 layer.layer_id,
                 layer.layer_source,
                 layer.layer_type,
-                {layer.layer_color, layer.layer_radius, layer.layer_opacity}
+                {layer.layer_color, layer.layer_radius, layer.layer_opacity},
+                {layer.cluster_min, layer.cluster_max, layer.cluster_color_1,
+                 layer.cluster_color_2, layer.cluster_color_3}
               )
           }
 
@@ -311,14 +313,14 @@ defmodule KinoMapLibre.MapCell do
     [id, args]
   end
 
-  defp build_arg_layer(nil, _, _, _), do: nil
-  defp build_arg_layer(_, nil, _, _), do: nil
+  defp build_arg_layer(nil, _, _, _, _), do: nil
+  defp build_arg_layer(_, nil, _, _, _), do: nil
 
-  defp build_arg_layer(id, source, :cluster, {_, _, opacity}) do
-    [[id: id, source: source, type: :circle, paint: build_arg_paint(:cluster, opacity)]]
+  defp build_arg_layer(id, source, :cluster, _, cluster_options) do
+    [[id: id, source: source, type: :circle, paint: build_arg_paint(:cluster, cluster_options)]]
   end
 
-  defp build_arg_layer(id, source, type, {color, radius, opacity}) do
+  defp build_arg_layer(id, source, type, {color, radius, opacity}, _) do
     [[id: id, source: source, type: type, paint: build_arg_paint(type, {color, radius, opacity})]]
   end
 
@@ -334,11 +336,10 @@ defmodule KinoMapLibre.MapCell do
     ["#{type}_color": color, "#{type}_opacity": opacity]
   end
 
-  defp build_arg_paint(:cluster, opacity) do
+  defp build_arg_paint(:cluster, {min, max, color_1, color_2, color_3}) do
     [
-      circle_color: ["step", ["get", "point_count"], "#51bbd6", 100, "#f1f075", 750, "#f28cb1"],
-      circle_radius: ["step", ["get", "point_count"], 20, 100, 30, 750, 40],
-      circle_opacity: opacity
+      circle_color: ["step", ["get", "point_count"], color_1, min, color_2, max, color_3],
+      circle_radius: ["step", ["get", "point_count"], 20, min, 30, max, 40]
     ]
   end
 
@@ -412,7 +413,12 @@ defmodule KinoMapLibre.MapCell do
         "coordinates_format" => "lng_lat",
         "source_coordinates" => nil,
         "source_longitude" => nil,
-        "source_latitude" => nil
+        "source_latitude" => nil,
+        "cluster_min" => 100,
+        "cluster_max" => 750,
+        "cluster_color_1" => "#51bbd6",
+        "cluster_color_2" => "#f1f075",
+        "cluster_color_3" => "#f28cb1"
       }
     ]
   end
