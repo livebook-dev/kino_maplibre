@@ -6,7 +6,7 @@ defmodule KinoMapLibre.MapCell do
   use Kino.SmartCell, name: "Map"
 
   @as_int ["zoom", "layer_radius"]
-  @as_atom ["layer_type", "source_type"]
+  @as_atom ["layer_type", "source_type", "symbol_type"]
   @as_float ["layer_opacity"]
   @geometries [Geo.Point, Geo.LineString, Geo.Polygon, Geo.GeometryCollection]
   @styles %{
@@ -199,6 +199,7 @@ defmodule KinoMapLibre.MapCell do
   defp to_quoted(attrs) do
     layers = attrs["layers"]
     sources = build_sources(layers)
+    symbols = build_symbols(layers)
 
     attrs =
       Map.take(attrs, ["style", "center", "zoom", "ml_alias"])
@@ -247,10 +248,21 @@ defmodule KinoMapLibre.MapCell do
               )
           }
 
+    symbols =
+      for symbol <- symbols,
+          symbol = Map.new(symbol, fn {k, v} -> convert_field(k, v) end),
+          symbol.symbol_source in valid_sources,
+          do: %{
+            field: :layer,
+            name: :add_layer,
+            module: attrs.ml_alias,
+            args: build_arg_symbol(symbol.symbol_id, symbol.symbol_source, symbol.symbol_type)
+          }
+
     used_sources = Enum.map(layers, &if(&1.args, do: hd(&1.args)[:source]))
     sources = Enum.filter(sources, &(&1.args && hd(&1.args) in used_sources))
 
-    nodes = sources ++ layers
+    nodes = sources ++ layers ++ symbols
 
     root = build_root(root)
     Enum.reduce(nodes, root, &apply_node/2)
@@ -265,7 +277,8 @@ defmodule KinoMapLibre.MapCell do
   defp apply_node(%{args: nil}, acc), do: acc
 
   defp apply_node(%{field: _field, name: function, module: module, args: args}, acc) do
-    args = Enum.reject(args, & &1 == [])
+    args = Enum.reject(args, &(&1 == []))
+
     quote do
       unquote(acc) |> unquote(module).unquote(function)(unquote_splicing(args))
     end
@@ -283,7 +296,7 @@ defmodule KinoMapLibre.MapCell do
   defp build_arg_source(nil, _, _, _, _), do: nil
   defp build_arg_source(_, nil, _, _, _), do: nil
   defp build_arg_source(_, _, :table, {_, nil}, _), do: nil
-  defp build_arg_source(_, _, :table, {_, [nil, _nil]}, _), do: nil
+  defp build_arg_source(_, _, :table, {_, [nil, _]}, _), do: nil
   defp build_arg_source(_, _, :table, {_, [_, nil]}, _), do: nil
 
   defp build_arg_source(id, data, :geo, _, opts),
@@ -329,6 +342,18 @@ defmodule KinoMapLibre.MapCell do
     ]
   end
 
+  defp build_arg_symbol(id, source, :cluster) do
+    [
+      [
+        id: id,
+        source: source,
+        type: :symbol,
+        layout: [text_field: "{point_count_abbreviated}", text_size: 10],
+        paint: [text_color: "black"]
+      ]
+    ]
+  end
+
   defp build_sources(layers) do
     for layer <- layers,
         do: %{
@@ -341,6 +366,16 @@ defmodule KinoMapLibre.MapCell do
         uniq: true
   end
 
+  defp build_symbols(layers) do
+    for layer <- layers,
+        layer["layer_type"] == "cluster",
+        do: %{
+          "symbol_id" => "#{layer["layer_source"]}_count",
+          "symbol_source" => layer["layer_source"],
+          "symbol_type" => "cluster"
+        }
+  end
+
   defp source_coordinates(%{"source_type" => "table", "coordinates_format" => "columns"} = layer) do
     {:lng_lat, [layer["source_longitude"], layer["source_latitude"]]}
   end
@@ -350,7 +385,6 @@ defmodule KinoMapLibre.MapCell do
   end
 
   defp source_coordinates(_), do: nil
-
 
   defp source_options(%{"layer_type" => "cluster"}), do: [cluster: true]
   defp source_options(_), do: []
