@@ -218,6 +218,53 @@ defmodule KinoMapLibre.MapCellTest do
              )\
              """
     end
+
+    test "source for a map with clustered data" do
+      layer = %{
+        "layer_id" => "airports",
+        "layer_source" => "airports",
+        "source_type" => "table",
+        "layer_type" => "cluster",
+        "source_coordinates" => "coordinates",
+        "coordinates_format" => "lat_lng",
+        "cluster_max" => 2000,
+        "cluster_color_1" => "#77bb41",
+        "cluster_color_2" => "#008cb4"
+      }
+
+      attrs = build_attrs(layer)
+
+      assert MapCell.to_source(attrs) == """
+             MapLibre.new()
+             |> MapLibre.add_table_source("airports", airports, {:lat_lng, "coordinates"},
+               cluster: true
+             )
+             |> MapLibre.add_layer(
+               id: "airports",
+               source: "airports",
+               type: :circle,
+               paint: [
+                 circle_color: [
+                   "step",
+                   ["get", "point_count"],
+                   "#77bb41",
+                   100,
+                   "#008cb4",
+                   2000,
+                   "#f28cb1"
+                 ],
+                 circle_radius: ["step", ["get", "point_count"], 20, 100, 30, 2000, 40]
+               ]
+             )
+             |> MapLibre.add_layer(
+               id: "airports_count",
+               source: "airports",
+               type: :symbol,
+               layout: [text_field: "{point_count_abbreviated}", text_size: 10],
+               paint: [text_color: "black"]
+             )\
+             """
+    end
   end
 
   defp build_attrs(root_attrs \\ %{}, layer_attrs) do
