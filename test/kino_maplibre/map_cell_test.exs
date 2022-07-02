@@ -236,12 +236,12 @@ defmodule KinoMapLibre.MapCellTest do
 
       assert MapCell.to_source(attrs) == """
              MapLibre.new()
-             |> MapLibre.add_table_source("airports", airports, {:lat_lng, "coordinates"},
+             |> MapLibre.add_table_source("airports_clustered", airports, {:lat_lng, "coordinates"},
                cluster: true
              )
              |> MapLibre.add_layer(
                id: "airports",
-               source: "airports",
+               source: "airports_clustered",
                type: :circle,
                paint: [
                  circle_color: [
@@ -258,7 +258,7 @@ defmodule KinoMapLibre.MapCellTest do
              )
              |> MapLibre.add_layer(
                id: "airports_count",
-               source: "airports",
+               source: "airports_clustered",
                type: :symbol,
                layout: [text_field: "{point_count_abbreviated}", text_size: 10],
                paint: [text_color: "black"]

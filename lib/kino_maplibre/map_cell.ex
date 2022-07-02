@@ -234,7 +234,8 @@ defmodule KinoMapLibre.MapCell do
     layers =
       for layer <- layers,
           layer = Map.new(layer, fn {k, v} -> convert_field(k, v) end),
-          layer.layer_source in valid_sources,
+          layer_source = build_layer_source(layer),
+          layer_source in valid_sources,
           do: %{
             field: :layer,
             name: :add_layer,
@@ -242,7 +243,7 @@ defmodule KinoMapLibre.MapCell do
             args:
               build_arg_layer(
                 layer.layer_id,
-                layer.layer_source,
+                layer_source,
                 layer.layer_type,
                 {layer.layer_color, layer.layer_radius, layer.layer_opacity},
                 {layer.cluster_min, layer.cluster_max, layer.cluster_color_1,
@@ -358,7 +359,7 @@ defmodule KinoMapLibre.MapCell do
   defp build_sources(layers) do
     for layer <- layers,
         do: %{
-          "source_id" => layer["layer_source"],
+          "source_id" => source_id(layer),
           "source_data" => layer["layer_source"],
           "source_type" => layer["source_type"],
           "source_coordinates" => source_coordinates(layer),
@@ -372,10 +373,16 @@ defmodule KinoMapLibre.MapCell do
         layer["layer_type"] == "cluster",
         do: %{
           "symbol_id" => "#{layer["layer_source"]}_count",
-          "symbol_source" => layer["layer_source"],
+          "symbol_source" => "#{layer["layer_source"]}_clustered",
           "symbol_type" => "cluster"
         }
   end
+
+  defp build_layer_source(%{layer_type: :cluster} = layer), do: "#{layer.layer_source}_clustered"
+  defp build_layer_source(layer), do: layer.layer_source
+
+  defp source_id(%{"layer_type" => "cluster"} = layer), do: "#{layer["layer_source"]}_clustered"
+  defp source_id(layer), do: layer["layer_source"]
 
   defp source_coordinates(%{"source_type" => "table", "coordinates_format" => "columns"} = layer) do
     {:lng_lat, [layer["source_longitude"], layer["source_latitude"]]}
