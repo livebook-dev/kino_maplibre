@@ -5,8 +5,8 @@ defmodule KinoMapLibre.MapCell do
   use Kino.JS.Live
   use Kino.SmartCell, name: "Map"
 
-  @as_int ["zoom", "layer_radius"]
-  @as_atom ["layer_type", "source_type"]
+  @as_int ["zoom", "layer_radius", "cluster_min", "cluster_max"]
+  @as_atom ["layer_type", "source_type", "symbol_type"]
   @as_float ["layer_opacity"]
   @geometries [Geo.Point, Geo.LineString, Geo.Polygon, Geo.GeometryCollection]
   @styles %{
@@ -199,6 +199,7 @@ defmodule KinoMapLibre.MapCell do
   defp to_quoted(attrs) do
     layers = attrs["layers"]
     sources = build_sources(layers)
+    symbols = build_symbols(layers)
 
     attrs =
       Map.take(attrs, ["style", "center", "zoom", "ml_alias"])
@@ -223,7 +224,8 @@ defmodule KinoMapLibre.MapCell do
                 source.source_id,
                 source.source_data,
                 source.source_type,
-                source.source_coordinates
+                source.source_coordinates,
+                source.source_options
               )
           }
 
@@ -232,7 +234,8 @@ defmodule KinoMapLibre.MapCell do
     layers =
       for layer <- layers,
           layer = Map.new(layer, fn {k, v} -> convert_field(k, v) end),
-          layer.layer_source in valid_sources,
+          layer_source = build_layer_source(layer),
+          layer_source in valid_sources,
           do: %{
             field: :layer,
             name: :add_layer,
@@ -240,16 +243,28 @@ defmodule KinoMapLibre.MapCell do
             args:
               build_arg_layer(
                 layer.layer_id,
-                layer.layer_source,
+                layer_source,
                 layer.layer_type,
-                {layer.layer_color, layer.layer_radius, layer.layer_opacity}
+                {layer.layer_color, layer.layer_radius, layer.layer_opacity},
+                {layer.cluster_min, layer.cluster_max, layer.cluster_colors}
               )
+          }
+
+    symbols =
+      for symbol <- symbols,
+          symbol = Map.new(symbol, fn {k, v} -> convert_field(k, v) end),
+          symbol.symbol_source in valid_sources,
+          do: %{
+            field: :layer,
+            name: :add_layer,
+            module: attrs.ml_alias,
+            args: build_arg_symbol(symbol.symbol_id, symbol.symbol_source, symbol.symbol_type)
           }
 
     used_sources = Enum.map(layers, &if(&1.args, do: hd(&1.args)[:source]))
     sources = Enum.filter(sources, &(&1.args && hd(&1.args) in used_sources))
 
-    nodes = sources ++ layers
+    nodes = sources ++ layers ++ symbols
 
     root = build_root(root)
     Enum.reduce(nodes, root, &apply_node/2)
@@ -264,6 +279,8 @@ defmodule KinoMapLibre.MapCell do
   defp apply_node(%{args: nil}, acc), do: acc
 
   defp apply_node(%{field: _field, name: function, module: module, args: args}, acc) do
+    args = Enum.reject(args, &(&1 == []))
+
     quote do
       unquote(acc) |> unquote(module).unquote(function)(unquote_splicing(args))
     end
@@ -278,26 +295,40 @@ defmodule KinoMapLibre.MapCell do
     end
   end
 
-  defp build_arg_source(nil, _, _, _), do: nil
-  defp build_arg_source(_, nil, _, _), do: nil
-  defp build_arg_source(_, _, :table, {_, nil}), do: nil
-  defp build_arg_source(_, _, :table, {_, [nil, _nil]}), do: nil
-  defp build_arg_source(_, _, :table, {_, [_, nil]}), do: nil
+  defp build_arg_source(nil, _, _, _, _), do: nil
+  defp build_arg_source(_, nil, _, _, _), do: nil
+  defp build_arg_source(_, _, :table, {_, nil}, _), do: nil
+  defp build_arg_source(_, _, :table, {_, [nil, _]}, _), do: nil
+  defp build_arg_source(_, _, :table, {_, [_, nil]}, _), do: nil
 
-  defp build_arg_source(id, data, :geo, _),
-    do: [id, Macro.var(String.to_atom(data), nil)]
+  defp build_arg_source(id, data, :geo, _, opts),
+    do: [id, Macro.var(String.to_atom(data), nil), opts]
 
-  defp build_arg_source(id, data, :table, coordinates),
-    do: [id, Macro.var(String.to_atom(data), nil), coordinates]
+  defp build_arg_source(id, data, :table, coordinates, opts),
+    do: [id, Macro.var(String.to_atom(data), nil), coordinates, opts]
 
-  defp build_arg_source(id, data, _, _),
-    do: [id, [type: :geojson, data: Macro.var(String.to_atom(data), nil)]]
+  defp build_arg_source(id, data, _, _, opts) do
+    args = [type: :geojson, data: Macro.var(String.to_atom(data), nil)]
+    args = if opts, do: Keyword.merge(args, opts), else: args
+    [id, args]
+  end
 
-  defp build_arg_layer(nil, _, _, _), do: nil
-  defp build_arg_layer(_, nil, _, _), do: nil
+  defp build_arg_layer(nil, _, _, _, _), do: nil
+  defp build_arg_layer(_, nil, _, _, _), do: nil
 
-  defp build_arg_layer(id, source, type, {color, radius, opacity}) do
+  defp build_arg_layer(id, source, :cluster, _, cluster_options) do
+    [[id: id, source: source, type: :circle, paint: build_arg_paint(:cluster, cluster_options)]]
+  end
+
+  defp build_arg_layer(id, source, type, {color, radius, opacity}, _) do
     [[id: id, source: source, type: type, paint: build_arg_paint(type, {color, radius, opacity})]]
+  end
+
+  defp build_arg_paint(:cluster, {min, max, [color_min, color_mid, color_max]}) do
+    [
+      circle_color: ["step", ["get", "point_count"], color_min, min, color_mid, max, color_max],
+      circle_radius: ["step", ["get", "point_count"], 20, min, 30, max, 40]
+    ]
   end
 
   defp build_arg_paint(:heatmap, {_color, radius, opacity}) do
@@ -312,16 +343,45 @@ defmodule KinoMapLibre.MapCell do
     ["#{type}_color": color, "#{type}_opacity": opacity]
   end
 
+  defp build_arg_symbol(id, source, :cluster) do
+    [
+      [
+        id: id,
+        source: source,
+        type: :symbol,
+        layout: [text_field: "{point_count_abbreviated}", text_size: 10],
+        paint: [text_color: "black"]
+      ]
+    ]
+  end
+
   defp build_sources(layers) do
     for layer <- layers,
         do: %{
-          "source_id" => layer["layer_source"],
+          "source_id" => source_id(layer),
           "source_data" => layer["layer_source"],
           "source_type" => layer["source_type"],
-          "source_coordinates" => source_coordinates(layer)
+          "source_coordinates" => source_coordinates(layer),
+          "source_options" => source_options(layer)
         },
         uniq: true
   end
+
+  defp build_symbols(layers) do
+    for layer <- layers,
+        layer["layer_type"] == "cluster",
+        do: %{
+          "symbol_id" => "#{layer["layer_source"]}_count",
+          "symbol_source" => "#{layer["layer_source"]}_clustered",
+          "symbol_type" => "cluster"
+        }
+  end
+
+  defp build_layer_source(%{layer_type: :cluster} = layer), do: "#{layer.layer_source}_clustered"
+  defp build_layer_source(layer), do: layer.layer_source
+
+  defp source_id(%{"layer_type" => "cluster"} = layer), do: "#{layer["layer_source"]}_clustered"
+  defp source_id(layer), do: layer["layer_source"]
 
   defp source_coordinates(%{"source_type" => "table", "coordinates_format" => "columns"} = layer) do
     {:lng_lat, [layer["source_longitude"], layer["source_latitude"]]}
@@ -332,6 +392,9 @@ defmodule KinoMapLibre.MapCell do
   end
 
   defp source_coordinates(_), do: nil
+
+  defp source_options(%{"layer_type" => "cluster"}), do: [cluster: true]
+  defp source_options(_), do: []
 
   defp add_source_function(:geo), do: :add_geo_source
   defp add_source_function(:table), do: :add_table_source
@@ -356,7 +419,10 @@ defmodule KinoMapLibre.MapCell do
         "coordinates_format" => "lng_lat",
         "source_coordinates" => nil,
         "source_longitude" => nil,
-        "source_latitude" => nil
+        "source_latitude" => nil,
+        "cluster_min" => 100,
+        "cluster_max" => 750,
+        "cluster_colors" => ["#51bbd6", "#f1f075", "#f28cb1"]
       }
     ]
   end

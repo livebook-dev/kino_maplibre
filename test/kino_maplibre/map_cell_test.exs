@@ -19,7 +19,10 @@ defmodule KinoMapLibre.MapCellTest do
     "coordinates_format" => "lng_lat",
     "source_coordinates" => nil,
     "source_longitude" => nil,
-    "source_latitude" => nil
+    "source_latitude" => nil,
+    "cluster_min" => 100,
+    "cluster_max" => 750,
+    "cluster_colors" => ["#51bbd6", "#f1f075", "#f28cb1"]
   }
 
   test "finds supported data in binding and sends new options to the client" do
@@ -210,6 +213,52 @@ defmodule KinoMapLibre.MapCellTest do
                source: "earthquakes",
                type: :circle,
                paint: [circle_color: "green", circle_radius: 5, circle_opacity: 0.7]
+             )\
+             """
+    end
+
+    test "source for a map with clustered data" do
+      layer = %{
+        "layer_id" => "airports",
+        "layer_source" => "airports",
+        "source_type" => "table",
+        "layer_type" => "cluster",
+        "source_coordinates" => "coordinates",
+        "coordinates_format" => "lat_lng",
+        "cluster_max" => 2000,
+        "cluster_colors" => ["#77bb41", "#008cb4", "#f28cb1"]
+      }
+
+      attrs = build_attrs(layer)
+
+      assert MapCell.to_source(attrs) == """
+             MapLibre.new()
+             |> MapLibre.add_table_source("airports_clustered", airports, {:lat_lng, "coordinates"},
+               cluster: true
+             )
+             |> MapLibre.add_layer(
+               id: "airports",
+               source: "airports_clustered",
+               type: :circle,
+               paint: [
+                 circle_color: [
+                   "step",
+                   ["get", "point_count"],
+                   "#77bb41",
+                   100,
+                   "#008cb4",
+                   2000,
+                   "#f28cb1"
+                 ],
+                 circle_radius: ["step", ["get", "point_count"], 20, 100, 30, 2000, 40]
+               ]
+             )
+             |> MapLibre.add_layer(
+               id: "airports_count",
+               source: "airports_clustered",
+               type: :symbol,
+               layout: [text_field: "{point_count_abbreviated}", text_size: 10],
+               paint: [text_color: "black"]
              )\
              """
     end

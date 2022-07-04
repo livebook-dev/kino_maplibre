@@ -393,3 +393,75 @@ input::-webkit-inner-spin-button {
 .radio-wrapper {
   margin-right: 5px;
 }
+
+.input-number {
+  width: 75px;
+  margin-right: 10px;
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+}
+
+.group-fields {
+  display: flex;
+}
+
+.group-label {
+  margin-bottom: 2px;
+  font-size: 0.875rem;
+  color: var(--gray-800);
+  font-weight: 500;
+  margin-left: 3px;
+}
+
+.input-color {
+  padding: 0;
+  margin: 0;
+  height: 35px;
+  width: 55px;
+  border: none;
+  cursor: pointer;
+}
+
+.input-color:focus {
+  outline: none;
+  border: none;
+}
+
+input[type="color"] {
+  appearance: none;
+  -moz-appearance: none;
+  -webkit-appearance: none;
+}
+
+::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+::-webkit-color-swatch{
+  border: 0;
+  border-radius: 0px;
+}
+
+::-moz-color-swatch,
+::-moz-focus-inner{
+  border: 0;
+}
+
+.input-color:first-child ::-webkit-color-swatch {
+  border-radius: 0.5rem 0 0 0.5rem;
+}
+
+.input-color:last-child ::-webkit-color-swatch {
+  border-radius: 0 0.5rem 0.5rem 0;
+}
+
+.input-color:first-child ::-moz-color-swatch {
+  border-radius: 0.5rem 0 0 0.5rem;
+}
+
+.input-color:last-child ::-moz-color-swatch {
+  border-radius: 0 0.5rem 0.5rem 0;
+}
