@@ -22,9 +22,7 @@ defmodule KinoMapLibre.MapCellTest do
     "source_latitude" => nil,
     "cluster_min" => 100,
     "cluster_max" => 750,
-    "cluster_color_1" => "#51bbd6",
-    "cluster_color_2" => "#f1f075",
-    "cluster_color_3" => "#f28cb1"
+    "cluster_colors" => ["#51bbd6", "#f1f075", "#f28cb1"]
   }
 
   test "finds supported data in binding and sends new options to the client" do
@@ -228,8 +226,7 @@ defmodule KinoMapLibre.MapCellTest do
         "source_coordinates" => "coordinates",
         "coordinates_format" => "lat_lng",
         "cluster_max" => 2000,
-        "cluster_color_1" => "#77bb41",
-        "cluster_color_2" => "#008cb4"
+        "cluster_colors" => ["#77bb41", "#008cb4", "#f28cb1"]
       }
 
       attrs = build_attrs(layer)

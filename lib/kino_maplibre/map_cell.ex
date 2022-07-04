@@ -246,8 +246,7 @@ defmodule KinoMapLibre.MapCell do
                 layer_source,
                 layer.layer_type,
                 {layer.layer_color, layer.layer_radius, layer.layer_opacity},
-                {layer.cluster_min, layer.cluster_max, layer.cluster_color_1,
-                 layer.cluster_color_2, layer.cluster_color_3}
+                {layer.cluster_min, layer.cluster_max, layer.cluster_colors}
               )
           }
 
@@ -325,6 +324,13 @@ defmodule KinoMapLibre.MapCell do
     [[id: id, source: source, type: type, paint: build_arg_paint(type, {color, radius, opacity})]]
   end
 
+  defp build_arg_paint(:cluster, {min, max, [color_min, color_mid, color_max]}) do
+    [
+      circle_color: ["step", ["get", "point_count"], color_min, min, color_mid, max, color_max],
+      circle_radius: ["step", ["get", "point_count"], 20, min, 30, max, 40]
+    ]
+  end
+
   defp build_arg_paint(:heatmap, {_color, radius, opacity}) do
     [heatmap_radius: radius, heatmap_opacity: opacity]
   end
@@ -335,13 +341,6 @@ defmodule KinoMapLibre.MapCell do
 
   defp build_arg_paint(type, {color, _radius, opacity}) do
     ["#{type}_color": color, "#{type}_opacity": opacity]
-  end
-
-  defp build_arg_paint(:cluster, {min, max, color_1, color_2, color_3}) do
-    [
-      circle_color: ["step", ["get", "point_count"], color_1, min, color_2, max, color_3],
-      circle_radius: ["step", ["get", "point_count"], 20, min, 30, max, 40]
-    ]
   end
 
   defp build_arg_symbol(id, source, :cluster) do
@@ -423,9 +422,7 @@ defmodule KinoMapLibre.MapCell do
         "source_latitude" => nil,
         "cluster_min" => 100,
         "cluster_max" => 750,
-        "cluster_color_1" => "#51bbd6",
-        "cluster_color_2" => "#f1f075",
-        "cluster_color_3" => "#f28cb1"
+        "cluster_colors" => ["#51bbd6", "#f1f075", "#f28cb1"]
       }
     ]
   end
