@@ -142,7 +142,6 @@ input[type=number] {
   align-items: center;
   justify-content: start;
   border: none;
-  margin-bottom: 2;
 }
 
 .inline-field .input-label {
@@ -152,13 +151,8 @@ input[type=number] {
 }
 
 .inline-field input {
-  border-bottom: 1px solid var(--gray-300);
-  background: transparent;
+  border-bottom: 1px solid var(--gray-200);
   border-radius: 0;
-  position: relative;
-  bottom: 4px;
-  padding-bottom: 2px;
-  padding-left: 0;
 }
 
 .inline-field .required {
@@ -315,11 +309,11 @@ input::-webkit-inner-spin-button {
 }
 
 .wrapper {
-  border-bottom: 1px solid var(--gray-100);
+  border-bottom: 1px solid var(--gray-200);
   margin-left: 14px;
   margin-right: 14px;
   margin-bottom: 12px;
-  padding-bottom: 8px;
+  padding-top: 6px;
 }
 
 .wrapper:last-child {
