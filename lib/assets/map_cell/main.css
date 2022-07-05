@@ -419,6 +419,15 @@ input::-webkit-inner-spin-button {
   cursor: pointer;
 }
 
+.input-color--xl {
+  width: 100%;
+  max-width: 100px;
+}
+
+div.input-color--xl {
+  height: 53px;
+}
+
 .input-color:focus {
   outline: none;
   border: none;
@@ -458,4 +467,12 @@ input[type="color"] {
 
 .input-color:last-child ::-moz-color-swatch {
   border-radius: 0 0.5rem 0.5rem 0;
+}
+
+.input-color--xl ::-webkit-color-swatch {
+  border-radius: 0.5rem;
+}
+
+.input-color--xl ::-moz-color-swatch {
+  border-radius: 0.5rem;
 }
