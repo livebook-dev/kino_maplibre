@@ -38,6 +38,8 @@
   margin-bottom: 12px;
   border-radius: 0.5rem 0.5rem 0 0;
   border-bottom: solid 1px var(--gray-200);
+  justify-content: space-around;
+  gap: 12px;
 }
 
 .input {
@@ -50,7 +52,7 @@
   color: var(--gray-600);
 }
 
-input[type=number] {
+input[type="number"] {
   appearance: textfield;
 }
 
@@ -80,22 +82,6 @@ input[type=number] {
   border: 1px solid var(--gray-300);
 }
 
-.input--md {
-  flex-basis: 40%;
-}
-
-.input--xl {
-  flex-basis: 60%;
-}
-
-.range--sm {
-  width: 70%;
-}
-
-.range--md {
-  width: 100%;
-}
-
 .root .input-label {
   color: var(--gray-600);
   padding-right: 6px;
@@ -108,32 +94,23 @@ input[type=number] {
   display: flex;
   flex-direction: column;
   margin-bottom: 16px;
-  flex-basis: 100%;
-  flex-grow: 1;
-  max-width: 250px;
+  flex-basis: 25%;
+  max-width: 162px;
 }
 
 .field:first-child {
   margin-left: 4px;
-}
-
-.row--sm .field {
-  min-width: 150px;
+  flex-basis: 34.5%;
+  max-width: 300px;
 }
 
 .root-field {
   display: flex;
   flex-direction: row;
   align-items: center;
-  justify-content: flex-end;
-  flex-grow: 0.5;
-  flex-basis: 30%;
+  flex-grow: 1;
   margin-bottom: 0;
   max-width: 300px;
-}
-
-.root-field:first-child {
-  justify-content: start;
 }
 
 .inline-field {
@@ -142,6 +119,7 @@ input[type=number] {
   align-items: center;
   justify-content: start;
   border: none;
+  width: 298px;
 }
 
 .inline-field .input-label {
@@ -166,14 +144,6 @@ input[type=number] {
   border-bottom: 1px solid var(--gray-500);
 }
 
-.range-wrapper {
-  display: flex;
-  flex-direction: column;
-  flex-basis: 12%;
-  margin-right: 2px;
-  max-width: 150px;
-}
-
 .button {
   padding: 0.5rem 1.25rem;
   color: var(--gray-500);
@@ -184,7 +154,7 @@ input[type=number] {
   border-radius: 0.5rem;
   border-width: 1px;
   border-color: transparent;
-  margin-right: 15px;
+  margin-right: 18px;
   margin-bottom: 6px;
   background-color: var(--gray-100);
 }
@@ -335,7 +305,24 @@ input::-webkit-inner-spin-button {
   justify-content: flex-end;
 }
 
-.rangeValue {
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  border: none;
+  height: 16px;
+  width: 16px;
+  border-radius: 50%;
+  background: var(--gray-400);
+}
+
+input[type=range]::-moz-range-thumb {
+  border: none;
+  height: 16px;
+  width: 16px;
+  border-radius: 50%;
+  background: var(--gray-400);
+}
+
+.range-value {
   position: relative;
   display: block;
   text-align: left;
@@ -356,9 +343,7 @@ input::-webkit-inner-spin-button {
 }
 
 .root .range {
-  width: 50%;
   margin-top: 8px;
-  flex-basis: 15%;
 }
 
 .root .range .input-label {
@@ -369,7 +354,7 @@ input::-webkit-inner-spin-button {
   padding-top: 0px;
 }
 
-.zoomValue {
+.zoom-value {
   color: var(--gray-600);
   padding-left: 6px;
   font-size: 0.875rem;
@@ -377,25 +362,14 @@ input::-webkit-inner-spin-button {
   width: 15px;
 }
 
-.radio-group {
-  font-size: 0.75rem;
+.zoom-wrapper {
   display: flex;
-  flex-direction: column;
-  padding-top: 15px;
-}
-
-.radio-wrapper {
-  margin-right: 5px;
-}
-
-.input-number {
-  width: 75px;
-  margin-right: 10px;
 }
 
 .group {
   display: flex;
   flex-direction: column;
+  margin-bottom: 28px;
 }
 
 .group-fields {
@@ -407,21 +381,24 @@ input::-webkit-inner-spin-button {
   font-size: 0.875rem;
   color: var(--gray-800);
   font-weight: 500;
-  margin-left: 3px;
 }
 
 .input-color {
   padding: 0;
   margin: 0;
   height: 35px;
-  width: 55px;
+  width: 54px;
   border: none;
   cursor: pointer;
 }
 
+.field.input-color:first-child {
+  margin-left: 0;
+  flex-basis: auto;
+}
+
 .input-color--xl {
   width: 100%;
-  max-width: 100px;
 }
 
 div.input-color--xl {
