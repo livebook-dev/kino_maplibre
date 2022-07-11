@@ -398,13 +398,14 @@ input[type=range]::-moz-range-thumb {
   padding: 0;
   margin: 0;
   height: 35px;
-  width: 55px;
+  width: 54px;
   border: none;
   cursor: pointer;
 }
 
 .field.input-color:first-child {
   margin-left: 0;
+  flex-basis: auto;
 }
 
 .input-color--xl {
