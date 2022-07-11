@@ -366,17 +366,6 @@ input[type=range]::-moz-range-thumb {
   display: flex;
 }
 
-.radio-group {
-  font-size: 0.75rem;
-  display: flex;
-  flex-direction: column;
-  padding-top: 15px;
-}
-
-.radio-wrapper {
-  margin-right: 5px;
-}
-
 .group {
   display: flex;
   flex-direction: column;
