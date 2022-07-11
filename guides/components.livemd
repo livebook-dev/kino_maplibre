@@ -2,8 +2,8 @@
 
 ```elixir
 Mix.install([
-  {:maplibre, "~> 0.1.0"},
-  {:kino_maplibre, "~> 0.1.0"}
+  {:maplibre, "~> 0.1.1"},
+  {:kino_maplibre, "~> 0.1.1"}
 ])
 
 alias MapLibre, as: Ml
