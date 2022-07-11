@@ -38,6 +38,8 @@
   margin-bottom: 12px;
   border-radius: 0.5rem 0.5rem 0 0;
   border-bottom: solid 1px var(--gray-200);
+  justify-content: space-around;
+  gap: 12px;
 }
 
 .input {
@@ -106,15 +108,9 @@ input[type="number"] {
   display: flex;
   flex-direction: row;
   align-items: center;
-  justify-content: flex-end;
-  flex-grow: 0.5;
-  flex-basis: 30%;
+  flex-grow: 1;
   margin-bottom: 0;
   max-width: 300px;
-}
-
-.root-field:first-child {
-  justify-content: start;
 }
 
 .inline-field {
@@ -330,9 +326,7 @@ input::-webkit-inner-spin-button {
 }
 
 .root .range {
-  width: 50%;
   margin-top: 8px;
-  flex-basis: 15%;
 }
 
 .root .range .input-label {
@@ -343,12 +337,16 @@ input::-webkit-inner-spin-button {
   padding-top: 0px;
 }
 
-.zoomValue {
+.zoom-value {
   color: var(--gray-600);
   padding-left: 6px;
   font-size: 0.875rem;
   margin-top: 10px;
   width: 15px;
+}
+
+.zoom-wrapper {
+  display: flex;
 }
 
 .radio-group {
