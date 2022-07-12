@@ -63,15 +63,30 @@ defmodule KinoMapLibre.MapCellTest do
     })
   end
 
-  test "normalized attrs" do
-    {:ok, ctx, _} =
-      MapCell.init(
-        %{"layers" => [%{"layer_type" => "fill", "layer_id" => "normalized"}]},
-        %Kino.JS.Live.Context{assigns: %{}}
-      )
+  test "returns the defaults map when starting fresh with no data" do
+    {_kino, source} = start_smart_cell!(MapCell, %{})
 
-    expected = Map.merge(@default_layer, %{"layer_type" => "fill", "layer_id" => "normalized"})
-    assert ctx.assigns.layers == [expected]
+    assert source == "MapLibre.new()"
+  end
+
+  test "generates code for normalized attrs" do
+    {_kino, source} =
+      start_smart_cell!(MapCell, %{
+        "layers" => [
+          %{"layer_type" => "fill", "layer_id" => "normalized", "layer_source" => "urban_areas"}
+        ]
+      })
+
+    assert source == """
+           MapLibre.new()
+           |> MapLibre.add_source("urban_areas", type: :geojson, data: urban_areas)
+           |> MapLibre.add_layer(
+             id: "normalized",
+             source: "urban_areas",
+             type: :fill,
+             paint: [fill_color: "#000000", fill_opacity: 1]
+           )\
+           """
   end
 
   describe "code generation" do

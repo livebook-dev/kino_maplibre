@@ -33,7 +33,7 @@ defmodule KinoMapLibre.MapCell do
       assign(ctx,
         root_fields: root_fields,
         layers: layers,
-        ml_alias: nil,
+        ml_alias: MapLibre,
         source_variables: [],
         missing_dep: missing_dep()
       )
