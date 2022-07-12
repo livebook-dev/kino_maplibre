@@ -24,13 +24,16 @@ defmodule KinoMapLibre.MapCell do
       "zoom" => attrs["zoom"] || 0
     }
 
-    layers = attrs["layers"] || default_layer()
+    layers =
+      if attrs["layers"],
+        do: Enum.map(attrs["layers"], &Map.merge(default_layer(), &1)),
+        else: [default_layer()]
 
     ctx =
       assign(ctx,
         root_fields: root_fields,
         layers: layers,
-        ml_alias: nil,
+        ml_alias: MapLibre,
         source_variables: [],
         missing_dep: missing_dep()
       )
@@ -132,7 +135,7 @@ defmodule KinoMapLibre.MapCell do
     %{"layer_source" => layer_source, "source_type" => source_type} =
       List.first(ctx.assigns.layers)
 
-    updated_layers = ctx.assigns.layers ++ default_layer(layer_source, source_type)
+    updated_layers = ctx.assigns.layers ++ [default_layer(layer_source, source_type)]
     ctx = %{ctx | assigns: %{ctx.assigns | layers: updated_layers}}
     broadcast_event(ctx, "set_layers", %{"layers" => updated_layers})
 
@@ -408,24 +411,22 @@ defmodule KinoMapLibre.MapCell do
   end
 
   defp default_layer(layer_source \\ nil, source_type \\ nil) do
-    [
-      %{
-        "layer_id" => nil,
-        "layer_source" => layer_source,
-        "source_type" => source_type,
-        "layer_type" => "circle",
-        "layer_color" => "black",
-        "layer_opacity" => 1,
-        "layer_radius" => 5,
-        "coordinates_format" => "lng_lat",
-        "source_coordinates" => nil,
-        "source_longitude" => nil,
-        "source_latitude" => nil,
-        "cluster_min" => 100,
-        "cluster_max" => 750,
-        "cluster_colors" => ["#51bbd6", "#f1f075", "#f28cb1"]
-      }
-    ]
+    %{
+      "layer_id" => nil,
+      "layer_source" => layer_source,
+      "source_type" => source_type,
+      "layer_type" => "circle",
+      "layer_color" => "#000000",
+      "layer_opacity" => 1,
+      "layer_radius" => 5,
+      "coordinates_format" => "lng_lat",
+      "source_coordinates" => nil,
+      "source_longitude" => nil,
+      "source_latitude" => nil,
+      "cluster_min" => 100,
+      "cluster_max" => 750,
+      "cluster_colors" => ["#51bbd6", "#f1f075", "#f28cb1"]
+    }
   end
 
   defp is_geometry?(%module{}) when module in @geometries, do: true
