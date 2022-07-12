@@ -13,7 +13,7 @@ defmodule KinoMapLibre.MapCellTest do
     "layer_source" => nil,
     "source_type" => nil,
     "layer_type" => "circle",
-    "layer_color" => "black",
+    "layer_color" => "#000000",
     "layer_opacity" => 1,
     "layer_radius" => 5,
     "coordinates_format" => "lng_lat",
@@ -88,7 +88,7 @@ defmodule KinoMapLibre.MapCellTest do
         "layer_id" => "urban-areas-fill",
         "layer_source" => "urban_areas",
         "layer_type" => "fill",
-        "layer_color" => "green",
+        "layer_color" => "#00f900",
         "layer_opacity" => 0.5
       }
 
@@ -101,7 +101,7 @@ defmodule KinoMapLibre.MapCellTest do
                id: "urban-areas-fill",
                source: "urban_areas",
                type: :fill,
-               paint: [fill_color: "green", fill_opacity: 0.5]
+               paint: [fill_color: "#00f900", fill_opacity: 0.5]
              )\
              """
     end
@@ -111,7 +111,7 @@ defmodule KinoMapLibre.MapCellTest do
         "layer_id" => "urban-areas-fill",
         "layer_source" => "urban_areas",
         "layer_type" => "fill",
-        "layer_color" => "green",
+        "layer_color" => "#00f900",
         "layer_opacity" => 0.5,
         "layer_radius" => 10
       }
@@ -120,7 +120,7 @@ defmodule KinoMapLibre.MapCellTest do
         "layer_id" => "rwanda-provinces-fill",
         "layer_source" => "rwanda_provinces",
         "layer_type" => "fill",
-        "layer_color" => "magenta",
+        "layer_color" => "#ff40ff",
         "layer_opacity" => 1,
         "layer_radius" => 10
       }
@@ -135,13 +135,13 @@ defmodule KinoMapLibre.MapCellTest do
                id: "urban-areas-fill",
                source: "urban_areas",
                type: :fill,
-               paint: [fill_color: "green", fill_opacity: 0.5]
+               paint: [fill_color: "#00f900", fill_opacity: 0.5]
              )
              |> MapLibre.add_layer(
                id: "rwanda-provinces-fill",
                source: "rwanda_provinces",
                type: :fill,
-               paint: [fill_color: "magenta", fill_opacity: 1]
+               paint: [fill_color: "#ff40ff", fill_opacity: 1]
              )\
              """
     end
@@ -174,7 +174,7 @@ defmodule KinoMapLibre.MapCellTest do
         "layer_id" => "earthquakes-heatmap",
         "layer_source" => "earthquakes",
         "source_type" => "geo",
-        "layer_color" => "green",
+        "layer_color" => "#00f900",
         "layer_opacity" => 0.7
       }
 
@@ -187,7 +187,7 @@ defmodule KinoMapLibre.MapCellTest do
                id: "earthquakes-heatmap",
                source: "earthquakes",
                type: :circle,
-               paint: [circle_color: "green", circle_radius: 5, circle_opacity: 0.7]
+               paint: [circle_color: "#00f900", circle_radius: 5, circle_opacity: 0.7]
              )\
              """
     end
@@ -197,7 +197,7 @@ defmodule KinoMapLibre.MapCellTest do
         "layer_id" => "earthquakes",
         "layer_source" => "earthquakes",
         "source_type" => "table",
-        "layer_color" => "green",
+        "layer_color" => "#00f900",
         "layer_opacity" => 0.7,
         "source_coordinates" => "coordinates",
         "coordinates_format" => "lat_lng"
@@ -212,7 +212,7 @@ defmodule KinoMapLibre.MapCellTest do
                id: "earthquakes",
                source: "earthquakes",
                type: :circle,
-               paint: [circle_color: "green", circle_radius: 5, circle_opacity: 0.7]
+               paint: [circle_color: "#00f900", circle_radius: 5, circle_opacity: 0.7]
              )\
              """
     end

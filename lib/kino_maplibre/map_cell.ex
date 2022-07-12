@@ -416,7 +416,7 @@ defmodule KinoMapLibre.MapCell do
       "layer_source" => layer_source,
       "source_type" => source_type,
       "layer_type" => "circle",
-      "layer_color" => "black",
+      "layer_color" => "#000000",
       "layer_opacity" => 1,
       "layer_radius" => 5,
       "coordinates_format" => "lng_lat",
