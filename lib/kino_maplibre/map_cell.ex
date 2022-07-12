@@ -24,7 +24,10 @@ defmodule KinoMapLibre.MapCell do
       "zoom" => attrs["zoom"] || 0
     }
 
-    layers = attrs["layers"] || [default_layer()]
+    layers =
+      if attrs["layers"],
+        do: Enum.map(attrs["layers"], &Map.merge(default_layer(), &1)),
+        else: [default_layer()]
 
     ctx =
       assign(ctx,
