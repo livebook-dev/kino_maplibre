@@ -69,7 +69,7 @@ defmodule KinoMapLibre.MapCellTest do
     assert source == "MapLibre.new()"
   end
 
-  test "generates code for normalized attrs" do
+  test "initializes properly when layer attributes are incomplete" do
     {_kino, source} =
       start_smart_cell!(MapCell, %{
         "layers" => [
