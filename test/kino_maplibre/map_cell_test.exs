@@ -63,6 +63,17 @@ defmodule KinoMapLibre.MapCellTest do
     })
   end
 
+  test "normalized attrs" do
+    {:ok, ctx, _} =
+      MapCell.init(
+        %{"layers" => [%{"layer_type" => "fill", "layer_id" => "normalized"}]},
+        %Kino.JS.Live.Context{assigns: %{}}
+      )
+
+    expected = Map.merge(@default_layer, %{"layer_type" => "fill", "layer_id" => "normalized"})
+    assert ctx.assigns.layers == [expected]
+  end
+
   describe "code generation" do
     test "source for a default empty map" do
       attrs = Map.merge(@root, %{"layers" => [@default_layer]})
