@@ -9,12 +9,7 @@ defmodule KinoMapLibre.MapCell do
   @as_atom ["layer_type", "source_type", "symbol_type"]
   @as_float ["layer_opacity"]
   @geometries [Geo.Point, Geo.LineString, Geo.Polygon, Geo.GeometryCollection]
-  @styles %{
-    "street (non-commercial)" =>
-      "https://api.maptiler.com/maps/streets/style.json?key=get_your_own_OpIi9ZULNHzrESv6T2vL",
-    "terrain (non-commercial)" =>
-      "https://api.maptiler.com/maps/hybrid/style.json?key=get_your_own_OpIi9ZULNHzrESv6T2vL"
-  }
+  @styles %{"street (non-commercial)" => :street, "terrain (non-commercial)" => :terrain}
 
   @impl true
   def init(attrs, ctx) do
