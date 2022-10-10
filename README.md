@@ -10,7 +10,7 @@ To bring KinoMapLibre to Livebook all you need to do is Mix.install/2:
 
 ```elixir
 Mix.install([
-  {:kino_maplibre, "~> 0.1.3"}
+  {:kino_maplibre, "~> 0.1.4"}
 ])
 ```
 
