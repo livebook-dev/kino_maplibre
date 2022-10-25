@@ -233,6 +233,22 @@ defmodule Kino.MapLibre do
     update_events(map, :jumps, jump)
   end
 
+  @doc """
+  Fits the map to the rectangle given by the 2 vertices in `bounds`
+  """
+  def fit_bounds(map, bounds, opts \\ []) do
+    fit_bounds = %{bounds: bounds, options: normalize_opts(opts)}
+    update_events(map, :fit_bounds, fit_bounds)
+  end
+
+  @doc """
+  Fits the map to the rectangle given by the 2 vertices in `bounds`
+  """
+  def set_filter(map, field, filters) do
+    set_filter = %{filters: filters, field: field}
+    update_events(map, :set_filter, set_filter)
+  end
+
   @impl true
   def init(ml, ctx) do
     {:ok, assign(ctx, spec: ml.spec, events: ml.events)}
@@ -294,8 +310,20 @@ defmodule Kino.MapLibre do
   end
 
   def handle_cast({:jumps, jump}, ctx) do
-    broadcast_event(ctx, "jumps", jump)
+    broadcast_event(ctx, "jump_to", jump)
     ctx = update_assigned_events(ctx, :jumps, jump)
+    {:noreply, ctx}
+  end
+
+  def handle_cast({:fit_bounds, bounds}, ctx) do
+    broadcast_event(ctx, "fit_bounds", bounds)
+    ctx = update_assigned_events(ctx, :fit_bounds, bounds)
+    {:noreply, ctx}
+  end
+
+  def handle_cast({:set_filter, filter_event}, ctx) do
+    broadcast_event(ctx, "set_filter", filter_event)
+    ctx = update_assigned_events(ctx, :set_filter, filter_event)
     {:noreply, ctx}
   end
 
