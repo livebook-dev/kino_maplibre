@@ -157,7 +157,7 @@ defmodule KinoMapLibre.MapCell do
     |> case do
       %{"lat" => lat, "lng" => lng} ->
         {{lng, _}, {lat, _}} = {Float.parse(lng), Float.parse(lat)}
-        {:center, {lng, lat}}
+        {:center, validate_coords({lng, lat})}
 
       _ ->
         {:center, nil}
@@ -444,4 +444,10 @@ defmodule KinoMapLibre.MapCell do
   end
 
   defp implements?(protocol, value), do: protocol.impl_for(value) != nil
+
+  defp validate_coords({lng, lat}) do
+    valid_lng? = lng >= -180 and lng <= 180
+    valid_lat? = lat >= -90 and lat <= 90
+    if valid_lng? and valid_lat?, do: {lng, lat}
+  end
 end
