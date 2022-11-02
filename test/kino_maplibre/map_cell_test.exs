@@ -11,6 +11,8 @@ defmodule KinoMapLibre.MapCellTest do
   @default_layer %{
     "layer_id" => nil,
     "layer_source" => nil,
+    "layer_source_query" => nil,
+    "layer_source_query_strict" => nil,
     "source_type" => nil,
     "layer_type" => "circle",
     "layer_color" => "#000000",
