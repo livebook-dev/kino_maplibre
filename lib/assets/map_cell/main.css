@@ -113,6 +113,14 @@ input[type="number"] {
   max-width: 300px;
 }
 
+.special-field {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 16px;
+  flex-basis: 50%;
+  max-width: 348px;
+}
+
 .inline-field {
   display: flex;
   flex-direction: row;
