@@ -11,6 +11,9 @@ defmodule KinoMapLibre.MapCell do
   @geometries [Geo.Point, Geo.LineString, Geo.Polygon, Geo.GeometryCollection]
   @styles %{"street (non-commercial)" => :street, "terrain (non-commercial)" => :terrain}
 
+  @query_source %{columns: nil, type: "query", variable: "🌎 Geocoding"}
+  @query_base "https://nominatim.openstreetmap.org/search?format=geojson&limit=1&polygon_geojson=1"
+
   @impl true
   def init(attrs, ctx) do
     root_fields = %{
@@ -61,8 +64,8 @@ defmodule KinoMapLibre.MapCell do
 
   @impl true
   def handle_info({:scan_binding_result, source_variables, ml_alias}, ctx) do
+    source_variables = source_variables ++ [@query_source]
     ctx = assign(ctx, ml_alias: ml_alias, source_variables: source_variables)
-
     first_layer = List.first(ctx.assigns.layers)
 
     updated_layer =
@@ -306,6 +309,12 @@ defmodule KinoMapLibre.MapCell do
   defp build_arg_source(id, data, :table, coordinates, opts),
     do: [id, Macro.var(String.to_atom(data), nil), coordinates, opts]
 
+  defp build_arg_source(id, data, :query, _, opts) do
+    args = [type: :geojson, data: data]
+    args = if opts, do: Keyword.merge(args, opts), else: args
+    [id, args]
+  end
+
   defp build_arg_source(id, data, _, _, opts) do
     args = [type: :geojson, data: Macro.var(String.to_atom(data), nil)]
     args = if opts, do: Keyword.merge(args, opts), else: args
@@ -358,7 +367,7 @@ defmodule KinoMapLibre.MapCell do
     for layer <- layers,
         do: %{
           "source_id" => source_id(layer),
-          "source_data" => layer["layer_source"],
+          "source_data" => source_data(layer),
           "source_type" => layer["source_type"],
           "source_coordinates" => source_coordinates(layer),
           "source_options" => source_options(layer)
@@ -377,9 +386,21 @@ defmodule KinoMapLibre.MapCell do
   end
 
   defp build_layer_source(%{layer_type: :cluster} = layer), do: "#{layer.layer_source}_clustered"
+
+  defp build_layer_source(%{source_type: :query} = layer) do
+    strict = layer.layer_source_query_strict
+    if strict, do: "#{layer.layer_source_query} #{strict}", else: layer.layer_source_query
+  end
+
   defp build_layer_source(layer), do: layer.layer_source
 
   defp source_id(%{"layer_type" => "cluster"} = layer), do: "#{layer["layer_source"]}_clustered"
+
+  defp source_id(%{"source_type" => "query"} = layer) do
+    strict = layer["layer_source_query_strict"]
+    if strict, do: "#{layer["layer_source_query"]} #{strict}", else: layer["layer_source_query"]
+  end
+
   defp source_id(layer), do: layer["layer_source"]
 
   defp source_coordinates(%{"source_type" => "table", "coordinates_format" => "columns"} = layer) do
@@ -395,6 +416,16 @@ defmodule KinoMapLibre.MapCell do
   defp source_options(%{"layer_type" => "cluster"}), do: [cluster: true]
   defp source_options(_), do: []
 
+  defp source_data(%{"source_type" => "query"} = layer) do
+    build_source_query(layer["layer_source_query"], layer["layer_source_query_strict"])
+  end
+
+  defp source_data(layer), do: layer["layer_source"]
+
+  defp build_source_query(nil, _), do: nil
+  defp build_source_query(query, nil), do: "#{@query_base}&q=#{query}"
+  defp build_source_query(query, strict), do: "#{@query_base}&#{strict}=#{query}"
+
   defp add_source_function(:geo), do: :add_geo_source
   defp add_source_function(:table), do: :add_table_source
   defp add_source_function(_), do: :add_source
@@ -409,6 +440,8 @@ defmodule KinoMapLibre.MapCell do
     %{
       "layer_id" => nil,
       "layer_source" => layer_source,
+      "layer_source_query" => nil,
+      "layer_source_query_strict" => nil,
       "source_type" => source_type,
       "layer_type" => "circle",
       "layer_color" => "#000000",

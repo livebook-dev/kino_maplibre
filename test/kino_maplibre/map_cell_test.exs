@@ -11,6 +11,8 @@ defmodule KinoMapLibre.MapCellTest do
   @default_layer %{
     "layer_id" => nil,
     "layer_source" => nil,
+    "layer_source_query" => nil,
+    "layer_source_query_strict" => nil,
     "source_type" => nil,
     "layer_type" => "circle",
     "layer_color" => "#000000",
@@ -51,7 +53,8 @@ defmodule KinoMapLibre.MapCellTest do
       %{columns: ["latitude", "longitude", "mag"], type: "table", variable: "earthquakes"},
       %{columns: ["coordinates", "year"], type: "table", variable: "conferences"},
       %{columns: nil, type: "geo", variable: "point"},
-      %{columns: nil, type: nil, variable: "quakes"}
+      %{columns: nil, type: nil, variable: "quakes"},
+      %{columns: nil, type: "query", variable: "🌎 Geocoding"}
     ]
 
     assert_broadcast_event(kino, "set_source_variables", %{
@@ -285,6 +288,63 @@ defmodule KinoMapLibre.MapCellTest do
                type: :symbol,
                layout: [text_field: "{point_count_abbreviated}", text_size: 10],
                paint: [text_color: "black"]
+             )\
+             """
+    end
+
+    test "source for a map with one geocode source" do
+      layer = %{
+        "layer_id" => "brazil-fill",
+        "layer_source_query" => "brazil",
+        "source_type" => "query",
+        "layer_type" => "fill",
+        "layer_color" => "#00f900",
+        "layer_opacity" => 0.5
+      }
+
+      attrs = build_attrs(layer)
+
+      assert MapCell.to_source(attrs) == """
+             MapLibre.new()
+             |> MapLibre.add_source("brazil",
+               type: :geojson,
+               data:
+                 "https://nominatim.openstreetmap.org/search?format=geojson&limit=1&polygon_geojson=1&q=brazil"
+             )
+             |> MapLibre.add_layer(
+               id: "brazil-fill",
+               source: "brazil",
+               type: :fill,
+               paint: [fill_color: "#00f900", fill_opacity: 0.5]
+             )\
+             """
+    end
+
+    test "source for a map with one strict geocode source" do
+      layer = %{
+        "layer_id" => "sp-fill",
+        "layer_source_query" => "sao paulo",
+        "layer_source_query_strict" => "state",
+        "source_type" => "query",
+        "layer_type" => "fill",
+        "layer_color" => "#00f900",
+        "layer_opacity" => 0.5
+      }
+
+      attrs = build_attrs(layer)
+
+      assert MapCell.to_source(attrs) == """
+             MapLibre.new()
+             |> MapLibre.add_source("sao paulo state",
+               type: :geojson,
+               data:
+                 "https://nominatim.openstreetmap.org/search?format=geojson&limit=1&polygon_geojson=1&state=sao paulo"
+             )
+             |> MapLibre.add_layer(
+               id: "sp-fill",
+               source: "sao paulo state",
+               type: :fill,
+               paint: [fill_color: "#00f900", fill_opacity: 0.5]
              )\
              """
     end
