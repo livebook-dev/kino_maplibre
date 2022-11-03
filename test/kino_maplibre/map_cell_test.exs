@@ -54,7 +54,7 @@ defmodule KinoMapLibre.MapCellTest do
       %{columns: ["coordinates", "year"], type: "table", variable: "conferences"},
       %{columns: nil, type: "geo", variable: "point"},
       %{columns: nil, type: nil, variable: "quakes"},
-      %{columns: nil, type: "query", variable: "Geocoding source"}
+      %{columns: nil, type: "query", variable: "🌎 Geocoding"}
     ]
 
     assert_broadcast_event(kino, "set_source_variables", %{

@@ -11,7 +11,7 @@ defmodule KinoMapLibre.MapCell do
   @geometries [Geo.Point, Geo.LineString, Geo.Polygon, Geo.GeometryCollection]
   @styles %{"street (non-commercial)" => :street, "terrain (non-commercial)" => :terrain}
 
-  @query_source %{columns: nil, type: "query", variable: "Geocoding source"}
+  @query_source %{columns: nil, type: "query", variable: "🌎 Geocoding"}
   @query_base "https://nominatim.openstreetmap.org/search?format=geojson&limit=1&polygon_geojson=1"
 
   @impl true
