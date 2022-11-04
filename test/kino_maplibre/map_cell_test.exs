@@ -9,7 +9,6 @@ defmodule KinoMapLibre.MapCellTest do
 
   @root %{"style" => nil, "center" => nil, "zoom" => 0, "ml_alias" => MapLibre}
   @default_layer %{
-    "layer_id" => nil,
     "layer_source" => nil,
     "layer_source_query" => nil,
     "layer_source_query_strict" => nil,
@@ -76,7 +75,7 @@ defmodule KinoMapLibre.MapCellTest do
     {_kino, source} =
       start_smart_cell!(MapCell, %{
         "layers" => [
-          %{"layer_type" => "fill", "layer_id" => "normalized", "layer_source" => "urban_areas"}
+          %{"layer_type" => "fill", "layer_source" => "urban_areas"}
         ]
       })
 
@@ -84,7 +83,7 @@ defmodule KinoMapLibre.MapCellTest do
            MapLibre.new()
            |> MapLibre.add_source("urban_areas", type: :geojson, data: urban_areas)
            |> MapLibre.add_layer(
-             id: "normalized",
+             id: "urban_areas_fill_1",
              source: "urban_areas",
              type: :fill,
              paint: [fill_color: "#000000", fill_opacity: 1]
@@ -114,7 +113,6 @@ defmodule KinoMapLibre.MapCellTest do
 
     test "source for a map with one source and one layer" do
       layer = %{
-        "layer_id" => "urban-areas-fill",
         "layer_source" => "urban_areas",
         "layer_type" => "fill",
         "layer_color" => "#00f900",
@@ -127,7 +125,7 @@ defmodule KinoMapLibre.MapCellTest do
              MapLibre.new()
              |> MapLibre.add_source("urban_areas", type: :geojson, data: urban_areas)
              |> MapLibre.add_layer(
-               id: "urban-areas-fill",
+               id: "urban_areas_fill_1",
                source: "urban_areas",
                type: :fill,
                paint: [fill_color: "#00f900", fill_opacity: 0.5]
@@ -137,7 +135,6 @@ defmodule KinoMapLibre.MapCellTest do
 
     test "source for a map with two sources and two layers" do
       layer_urban = %{
-        "layer_id" => "urban-areas-fill",
         "layer_source" => "urban_areas",
         "layer_type" => "fill",
         "layer_color" => "#00f900",
@@ -146,7 +143,6 @@ defmodule KinoMapLibre.MapCellTest do
       }
 
       layer_rwanda = %{
-        "layer_id" => "rwanda-provinces-fill",
         "layer_source" => "rwanda_provinces",
         "layer_type" => "fill",
         "layer_color" => "#ff40ff",
@@ -161,13 +157,13 @@ defmodule KinoMapLibre.MapCellTest do
              |> MapLibre.add_source("urban_areas", type: :geojson, data: urban_areas)
              |> MapLibre.add_source("rwanda_provinces", type: :geojson, data: rwanda_provinces)
              |> MapLibre.add_layer(
-               id: "urban-areas-fill",
+               id: "urban_areas_fill_1",
                source: "urban_areas",
                type: :fill,
                paint: [fill_color: "#00f900", fill_opacity: 0.5]
              )
              |> MapLibre.add_layer(
-               id: "rwanda-provinces-fill",
+               id: "rwanda_provinces_fill_2",
                source: "rwanda_provinces",
                type: :fill,
                paint: [fill_color: "#ff40ff", fill_opacity: 1]
@@ -177,7 +173,6 @@ defmodule KinoMapLibre.MapCellTest do
 
     test "source for a map with a layer with radius" do
       layer = %{
-        "layer_id" => "earthquakes-heatmap",
         "layer_source" => "earthquakes",
         "layer_type" => "heatmap",
         "layer_opacity" => 0.5,
@@ -190,7 +185,7 @@ defmodule KinoMapLibre.MapCellTest do
              MapLibre.new()
              |> MapLibre.add_source("earthquakes", type: :geojson, data: earthquakes)
              |> MapLibre.add_layer(
-               id: "earthquakes-heatmap",
+               id: "earthquakes_heatmap_1",
                source: "earthquakes",
                type: :heatmap,
                paint: [heatmap_radius: 5, heatmap_opacity: 0.5]
@@ -200,7 +195,6 @@ defmodule KinoMapLibre.MapCellTest do
 
     test "source for a map with a geo source type" do
       layer = %{
-        "layer_id" => "earthquakes-heatmap",
         "layer_source" => "earthquakes",
         "source_type" => "geo",
         "layer_color" => "#00f900",
@@ -213,7 +207,7 @@ defmodule KinoMapLibre.MapCellTest do
              MapLibre.new()
              |> MapLibre.add_geo_source("earthquakes", earthquakes)
              |> MapLibre.add_layer(
-               id: "earthquakes-heatmap",
+               id: "earthquakes_circle_1",
                source: "earthquakes",
                type: :circle,
                paint: [circle_color: "#00f900", circle_radius: 5, circle_opacity: 0.7]
@@ -223,7 +217,6 @@ defmodule KinoMapLibre.MapCellTest do
 
     test "source for a map with tabular source type" do
       layer = %{
-        "layer_id" => "earthquakes",
         "layer_source" => "earthquakes",
         "source_type" => "table",
         "layer_color" => "#00f900",
@@ -238,7 +231,7 @@ defmodule KinoMapLibre.MapCellTest do
              MapLibre.new()
              |> MapLibre.add_table_source("earthquakes", earthquakes, {:lat_lng, "coordinates"})
              |> MapLibre.add_layer(
-               id: "earthquakes",
+               id: "earthquakes_circle_1",
                source: "earthquakes",
                type: :circle,
                paint: [circle_color: "#00f900", circle_radius: 5, circle_opacity: 0.7]
@@ -248,7 +241,6 @@ defmodule KinoMapLibre.MapCellTest do
 
     test "source for a map with clustered data" do
       layer = %{
-        "layer_id" => "airports",
         "layer_source" => "airports",
         "source_type" => "table",
         "layer_type" => "cluster",
@@ -266,7 +258,7 @@ defmodule KinoMapLibre.MapCellTest do
                cluster: true
              )
              |> MapLibre.add_layer(
-               id: "airports",
+               id: "airports_clustered_cluster_1",
                source: "airports_clustered",
                type: :circle,
                paint: [
@@ -294,7 +286,6 @@ defmodule KinoMapLibre.MapCellTest do
 
     test "source for a map with one geocode source" do
       layer = %{
-        "layer_id" => "brazil-fill",
         "layer_source_query" => "brazil",
         "source_type" => "query",
         "layer_type" => "fill",
@@ -312,7 +303,7 @@ defmodule KinoMapLibre.MapCellTest do
                  "https://nominatim.openstreetmap.org/search?format=geojson&limit=1&polygon_geojson=1&q=brazil"
              )
              |> MapLibre.add_layer(
-               id: "brazil-fill",
+               id: "brazil_fill_1",
                source: "brazil",
                type: :fill,
                paint: [fill_color: "#00f900", fill_opacity: 0.5]
@@ -322,7 +313,6 @@ defmodule KinoMapLibre.MapCellTest do
 
     test "source for a map with one strict geocode source" do
       layer = %{
-        "layer_id" => "sp-fill",
         "layer_source_query" => "sao paulo",
         "layer_source_query_strict" => "state",
         "source_type" => "query",
@@ -335,14 +325,14 @@ defmodule KinoMapLibre.MapCellTest do
 
       assert MapCell.to_source(attrs) == """
              MapLibre.new()
-             |> MapLibre.add_source("sao paulo state",
+             |> MapLibre.add_source("sao_paulo_state",
                type: :geojson,
                data:
                  "https://nominatim.openstreetmap.org/search?format=geojson&limit=1&polygon_geojson=1&state=sao paulo"
              )
              |> MapLibre.add_layer(
-               id: "sp-fill",
-               source: "sao paulo state",
+               id: "sao_paulo_state_fill_1",
+               source: "sao_paulo_state",
                type: :fill,
                paint: [fill_color: "#00f900", fill_opacity: 0.5]
              )\
