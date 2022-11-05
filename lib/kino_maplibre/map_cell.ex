@@ -108,14 +108,16 @@ defmodule KinoMapLibre.MapCell do
     [source_type] =
       get_in(ctx.assigns.source_variables, [Access.filter(&(&1.variable == value)), :type])
 
-    updated_layer = %{layer | "layer_source" => value, "source_type" => source_type}
+    updated_source = prefill_source_options(ctx.assigns.layers, value)
+
+    updated_fields =
+      Map.merge(%{"layer_source" => value, "source_type" => source_type}, updated_source)
+
+    updated_layer = Map.merge(layer, updated_fields)
     updated_layers = List.replace_at(ctx.assigns.layers, idx, updated_layer)
     ctx = %{ctx | assigns: %{ctx.assigns | layers: updated_layers}}
 
-    broadcast_event(ctx, "update_layer", %{
-      "idx" => idx,
-      "fields" => %{"layer_source" => value, "source_type" => source_type}
-    })
+    broadcast_event(ctx, "update_layer", %{"idx" => idx, "fields" => updated_fields})
 
     {:noreply, ctx}
   end
@@ -133,7 +135,10 @@ defmodule KinoMapLibre.MapCell do
     %{"layer_source" => layer_source, "source_type" => source_type} =
       List.first(ctx.assigns.layers)
 
-    updated_layers = ctx.assigns.layers ++ [default_layer(layer_source, source_type)]
+    updated_source = prefill_source_options(ctx.assigns.layers, layer_source)
+    updated_layer = Map.merge(default_layer(layer_source, source_type), updated_source)
+
+    updated_layers = ctx.assigns.layers ++ [updated_layer]
     ctx = %{ctx | assigns: %{ctx.assigns | layers: updated_layers}}
     broadcast_event(ctx, "set_layers", %{"layers" => updated_layers})
 
@@ -146,6 +151,25 @@ defmodule KinoMapLibre.MapCell do
     broadcast_event(ctx, "set_layers", %{"layers" => updated_layers})
 
     {:noreply, ctx}
+  end
+
+  defp prefill_source_options(layers, value) do
+    source = Enum.find(layers, &(&1["layer_source"] == value))
+
+    if source,
+      do:
+        Map.take(source, [
+          "coordinates_format",
+          "source_coordinates",
+          "source_latitude",
+          "source_longitude"
+        ]),
+      else: %{
+        "coordinates_format" => "lng_lat",
+        "source_coordinates" => nil,
+        "source_longitude" => nil,
+        "source_latitude" => nil
+      }
   end
 
   defp parse_value(_field, ""), do: nil
