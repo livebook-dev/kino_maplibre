@@ -35,7 +35,7 @@
   display: flex;
   background-color: var(--blue-100);
   padding: 8px 16px;
-  margin-bottom: 12px;
+  margin-bottom: 6px;
   border-radius: 0.5rem 0.5rem 0 0;
   border-bottom: solid 1px var(--gray-200);
   justify-content: space-around;
@@ -183,7 +183,6 @@ input[type="number"] {
   background: transparent;
   position: relative;
   left: 10px;
-  bottom: 6px;
 }
 
 .button--sm:hover {
@@ -290,8 +289,8 @@ input::-webkit-inner-spin-button {
   border-bottom: 1px solid var(--gray-200);
   margin-left: 14px;
   margin-right: 14px;
-  margin-bottom: 12px;
-  padding-top: 6px;
+  margin-bottom: 6px;
+  padding-top: 0px;
 }
 
 .wrapper:last-child {
@@ -300,8 +299,8 @@ input::-webkit-inner-spin-button {
 }
 
 .wrapper--closed {
-  padding-bottom: 12px;
-  margin-top: 10px;
+  padding-bottom: 6px;
+  margin-top: 0px;
 }
 
 .source-wrapper:last-child {
