@@ -233,9 +233,10 @@ defmodule KinoMapLibre.MapCell do
     valid_sources = Enum.map(sources, &if(&1.args, do: hd(&1.args)))
 
     layers =
-      for layer <- layers,
+      for {layer, idx} <- Enum.with_index(layers),
           layer = Map.new(layer, fn {k, v} -> convert_field(k, v) end),
           layer_source = build_layer_source(layer),
+          layer_id = "#{layer_source}_#{layer.layer_type}_#{idx + 1}",
           layer_source in valid_sources,
           do: %{
             field: :layer,
@@ -243,7 +244,7 @@ defmodule KinoMapLibre.MapCell do
             module: attrs.ml_alias,
             args:
               build_arg_layer(
-                layer.layer_id,
+                layer_id,
                 layer_source,
                 layer.layer_type,
                 {layer.layer_color, layer.layer_radius, layer.layer_opacity},
@@ -386,19 +387,23 @@ defmodule KinoMapLibre.MapCell do
   end
 
   defp build_layer_source(%{layer_type: :cluster} = layer), do: "#{layer.layer_source}_clustered"
+  defp build_layer_source(%{source_type: :query, layer_source_query: nil}), do: nil
 
   defp build_layer_source(%{source_type: :query} = layer) do
+    query = String.replace(layer.layer_source_query, ~r/\W+/, "_")
     strict = layer.layer_source_query_strict
-    if strict, do: "#{layer.layer_source_query} #{strict}", else: layer.layer_source_query
+    if strict, do: "#{query}_#{strict}", else: query
   end
 
   defp build_layer_source(layer), do: layer.layer_source
 
   defp source_id(%{"layer_type" => "cluster"} = layer), do: "#{layer["layer_source"]}_clustered"
+  defp source_id(%{"source_type" => "query", "layer_source_query" => nil}), do: nil
 
   defp source_id(%{"source_type" => "query"} = layer) do
+    query = String.replace(layer["layer_source_query"], ~r/\W+/, "_")
     strict = layer["layer_source_query_strict"]
-    if strict, do: "#{layer["layer_source_query"]} #{strict}", else: layer["layer_source_query"]
+    if strict, do: "#{query}_#{strict}", else: query
   end
 
   defp source_id(layer), do: layer["layer_source"]
@@ -438,7 +443,6 @@ defmodule KinoMapLibre.MapCell do
 
   defp default_layer(layer_source \\ nil, source_type \\ nil) do
     %{
-      "layer_id" => nil,
       "layer_source" => layer_source,
       "layer_source_query" => nil,
       "layer_source_query_strict" => nil,
