@@ -219,8 +219,8 @@ defmodule Kino.MapLibre do
   """
   @spec add_custom_image(maplibre(), String.t(), String.t()) ::
           :ok | %__MODULE__{}
-  def add_custom_image(map, image_name, image_url) do
-    image = %{name: image_name, url: image_url}
+  def add_custom_image(map, image_name, image_url, opts \\ []) do
+    image = %{name: image_name, url: image_url, options: normalize_opts(opts)}
     update_events(map, :images, image)
   end
 
@@ -239,14 +239,6 @@ defmodule Kino.MapLibre do
   def fit_bounds(map, bounds, opts \\ []) do
     fit_bounds = %{bounds: bounds, options: normalize_opts(opts)}
     update_events(map, :fit_bounds, fit_bounds)
-  end
-
-  @doc """
-  Fits the map to the rectangle given by the 2 vertices in `bounds`
-  """
-  def set_filter(map, field, filters) do
-    set_filter = %{filters: filters, field: field}
-    update_events(map, :set_filter, set_filter)
   end
 
   @impl true
@@ -321,12 +313,6 @@ defmodule Kino.MapLibre do
     {:noreply, ctx}
   end
 
-  def handle_cast({:set_filter, filter_event}, ctx) do
-    broadcast_event(ctx, "set_filter", filter_event)
-    ctx = update_assigned_events(ctx, :set_filter, filter_event)
-    {:noreply, ctx}
-  end
-
   defp update_events(%MapLibre{} = ml, key, value) do
     update_events(%__MODULE__{spec: ml.spec}, key, value)
   end
@@ -337,8 +323,8 @@ defmodule Kino.MapLibre do
     end)
   end
 
-  defp update_events(kino, key, value) do
-    Kino.JS.Live.cast(kino, {key, value})
+  defp update_events(kino, key, value, {mod, fun} \\ {Kino.JS.Live, :cast}) do
+    apply(mod, fun, [kino, {key, value}])
   end
 
   defp update_assigned_events(ctx, key, value) do
