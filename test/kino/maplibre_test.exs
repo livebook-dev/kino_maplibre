@@ -291,7 +291,7 @@ defmodule Kino.MapLibreTest do
   describe "add_custom_image/3" do
     test "adds a custom image to a static map" do
       ml = Ml.new() |> Kino.MapLibre.add_custom_image("kitten", "kitten_url")
-      assert ml.events.images == [%{name: "kitten", url: "kitten_url"}]
+      assert ml.events.images == [%{name: "kitten", url: "kitten_url", options: %{}}]
     end
 
     test "adds a custom image to a dynamic map" do
@@ -299,8 +299,13 @@ defmodule Kino.MapLibreTest do
       Kino.MapLibre.add_custom_image(ml, "kitten", "kitten_url")
       data = connect(ml)
 
-      assert data.events.images == [%{name: "kitten", url: "kitten_url"}]
-      assert_broadcast_event(ml, "add_custom_image", %{name: "kitten", url: "kitten_url"})
+      assert data.events.images == [%{name: "kitten", url: "kitten_url", options: %{}}]
+
+      assert_broadcast_event(ml, "add_custom_image", %{
+        name: "kitten",
+        url: "kitten_url",
+        options: %{}
+      })
     end
 
     test "adds a custom image to a converted map" do
@@ -311,14 +316,19 @@ defmodule Kino.MapLibreTest do
       data = connect(ml)
 
       assert data.events.images == [
-               %{name: "another_kitten", url: "another_kitten_url"},
-               %{name: "kitten", url: "kitten_url"}
+               %{name: "another_kitten", url: "another_kitten_url", options: %{}},
+               %{name: "kitten", url: "kitten_url", options: %{}}
              ]
 
       assert_broadcast_event(ml, "add_custom_image", %{
         name: "another_kitten",
         url: "another_kitten_url"
       })
+    end
+
+    test "broadcasts options as well" do
+      ml = Ml.new() |> Kino.MapLibre.add_custom_image("kitten", "kitten_url", sdf: true)
+      assert ml.events.images == [%{name: "kitten", url: "kitten_url", options: %{"sdf" => true}}]
     end
   end
 
