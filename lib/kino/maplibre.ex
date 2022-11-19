@@ -219,8 +219,8 @@ defmodule Kino.MapLibre do
   """
   @spec add_custom_image(maplibre(), String.t(), String.t()) ::
           :ok | %__MODULE__{}
-  def add_custom_image(map, image_name, image_url) do
-    image = %{name: image_name, url: image_url}
+  def add_custom_image(map, image_name, image_url, opts \\ []) do
+    image = %{name: image_name, url: image_url, options: normalize_opts(opts)}
     update_events(map, :images, image)
   end
 
@@ -231,6 +231,14 @@ defmodule Kino.MapLibre do
   def jump_to(map, location, opts \\ []) do
     jump = %{location: location, options: normalize_opts(opts)}
     update_events(map, :jumps, jump)
+  end
+
+  @doc """
+  Fits the map to the rectangle given by the 2 vertices in `bounds`
+  """
+  def fit_bounds(map, bounds, opts \\ []) do
+    fit_bounds = %{bounds: bounds, options: normalize_opts(opts)}
+    update_events(map, :fit_bounds, fit_bounds)
   end
 
   @impl true
@@ -296,6 +304,12 @@ defmodule Kino.MapLibre do
   def handle_cast({:jumps, jump}, ctx) do
     broadcast_event(ctx, "jumps", jump)
     ctx = update_assigned_events(ctx, :jumps, jump)
+    {:noreply, ctx}
+  end
+
+  def handle_cast({:fit_bounds, bounds}, ctx) do
+    broadcast_event(ctx, "fit_bounds", bounds)
+    ctx = update_assigned_events(ctx, :fit_bounds, bounds)
     {:noreply, ctx}
   end
 
