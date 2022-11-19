@@ -344,7 +344,7 @@ defmodule Kino.MapLibreTest do
       data = connect(ml)
 
       assert data.events.jumps == [%{location: {0, 0}, options: %{"zoom" => 6}}]
-      assert_broadcast_event(ml, "jumps", %{location: {0, 0}, options: %{"zoom" => 6}})
+      assert_broadcast_event(ml, "jump_to", %{location: {0, 0}, options: %{"zoom" => 6}})
     end
 
     test "adds a jump effect to a converted map" do
@@ -357,7 +357,7 @@ defmodule Kino.MapLibreTest do
                %{location: {0, 0}, options: %{}}
              ]
 
-      assert_broadcast_event(ml, "jumps", %{location: {-40, 20}, options: %{"zoom" => 6}})
+      assert_broadcast_event(ml, "jump_to", %{location: {-40, 20}, options: %{"zoom" => 6}})
     end
   end
 end
