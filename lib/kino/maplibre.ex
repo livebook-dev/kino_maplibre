@@ -302,7 +302,7 @@ defmodule Kino.MapLibre do
   end
 
   def handle_cast({:jumps, jump}, ctx) do
-    broadcast_event(ctx, "jumps", jump)
+    broadcast_event(ctx, "jump_to", jump)
     ctx = update_assigned_events(ctx, :jumps, jump)
     {:noreply, ctx}
   end
