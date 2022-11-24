@@ -12,7 +12,6 @@ defmodule KinoMapLibre.MapCell do
   @styles %{"street (non-commercial)" => :street, "terrain (non-commercial)" => :terrain}
 
   @query_source %{columns: nil, type: "query", variable: "🌎 Geocoding"}
-  @query_base "https://nominatim.openstreetmap.org/search?format=geojson&limit=1&polygon_geojson=1"
 
   @impl true
   def init(attrs, ctx) do
@@ -334,11 +333,11 @@ defmodule KinoMapLibre.MapCell do
   defp build_arg_source(id, data, :table, coordinates, opts),
     do: [id, Macro.var(String.to_atom(data), nil), coordinates, opts]
 
-  defp build_arg_source(id, data, :query, _, opts) do
-    args = [type: :geojson, data: data]
-    args = if opts, do: Keyword.merge(args, opts), else: args
-    [id, args]
-  end
+  defp build_arg_source(id, {data, nil}, :query, _, opts),
+    do: [id, data, opts]
+
+  defp build_arg_source(id, {data, strict}, :query, _, opts),
+    do: [id, data, String.to_atom(strict), opts]
 
   defp build_arg_source(id, data, _, _, opts) do
     args = [type: :geojson, data: Macro.var(String.to_atom(data), nil)]
@@ -346,7 +345,6 @@ defmodule KinoMapLibre.MapCell do
     [id, args]
   end
 
-  defp build_arg_layer(nil, _, _, _, _), do: nil
   defp build_arg_layer(_, nil, _, _, _), do: nil
 
   defp build_arg_layer(id, source, :cluster, _, cluster_options) do
@@ -414,7 +412,7 @@ defmodule KinoMapLibre.MapCell do
   defp build_layer_source(%{source_type: :query, layer_source_query: nil}), do: nil
 
   defp build_layer_source(%{source_type: :query} = layer) do
-    query = String.replace(layer.layer_source_query, ~r/\W+/, "_")
+    query = normalize_geocode_id(layer.layer_source_query)
     strict = layer.layer_source_query_strict
     if strict, do: "#{query}_#{strict}", else: query
   end
@@ -425,7 +423,7 @@ defmodule KinoMapLibre.MapCell do
   defp source_id(%{"source_type" => "query", "layer_source_query" => nil}), do: nil
 
   defp source_id(%{"source_type" => "query"} = layer) do
-    query = String.replace(layer["layer_source_query"], ~r/\W+/, "_")
+    query = normalize_geocode_id(layer["layer_source_query"])
     strict = layer["layer_source_query_strict"]
     if strict, do: "#{query}_#{strict}", else: query
   end
@@ -446,17 +444,14 @@ defmodule KinoMapLibre.MapCell do
   defp source_options(_), do: []
 
   defp source_data(%{"source_type" => "query"} = layer) do
-    build_source_query(layer["layer_source_query"], layer["layer_source_query_strict"])
+    {layer["layer_source_query"], layer["layer_source_query_strict"]}
   end
 
   defp source_data(layer), do: layer["layer_source"]
 
-  defp build_source_query(nil, _), do: nil
-  defp build_source_query(query, nil), do: "#{@query_base}&q=#{query}"
-  defp build_source_query(query, strict), do: "#{@query_base}&#{strict}=#{query}"
-
   defp add_source_function(:geo), do: :add_geo_source
   defp add_source_function(:table), do: :add_table_source
+  defp add_source_function(:query), do: :add_geocode_source
   defp add_source_function(_), do: :add_source
 
   defp missing_dep() do
@@ -510,5 +505,13 @@ defmodule KinoMapLibre.MapCell do
     valid_lng? = lng >= -180 and lng <= 180
     valid_lat? = lat >= -90 and lat <= 90
     if valid_lng? and valid_lat?, do: {lng, lat}
+  end
+
+  defp normalize_geocode_id(query) do
+    query
+    |> String.downcase()
+    |> String.normalize(:nfd)
+    |> String.replace(~r/[^A-z\s]/u, "")
+    |> String.replace(~r/\W+/, "_")
   end
 end

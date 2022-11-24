@@ -297,11 +297,7 @@ defmodule KinoMapLibre.MapCellTest do
 
       assert MapCell.to_source(attrs) == """
              MapLibre.new()
-             |> MapLibre.add_source("brazil",
-               type: :geojson,
-               data:
-                 "https://nominatim.openstreetmap.org/search?format=geojson&limit=1&polygon_geojson=1&q=brazil"
-             )
+             |> MapLibre.add_geocode_source("brazil", "brazil")
              |> MapLibre.add_layer(
                id: "brazil_fill_1",
                source: "brazil",
@@ -325,11 +321,7 @@ defmodule KinoMapLibre.MapCellTest do
 
       assert MapCell.to_source(attrs) == """
              MapLibre.new()
-             |> MapLibre.add_source("sao_paulo_state",
-               type: :geojson,
-               data:
-                 "https://nominatim.openstreetmap.org/search?format=geojson&limit=1&polygon_geojson=1&state=sao paulo"
-             )
+             |> MapLibre.add_geocode_source("sao_paulo_state", "sao paulo", :state)
              |> MapLibre.add_layer(
                id: "sao_paulo_state_fill_1",
                source: "sao_paulo_state",
