@@ -10,6 +10,7 @@ defmodule KinoMapLibre.MapCell do
   @as_float ["layer_opacity"]
   @geometries [Geo.Point, Geo.LineString, Geo.Polygon, Geo.GeometryCollection]
   @styles %{"street (non-commercial)" => :street, "terrain (non-commercial)" => :terrain}
+  @geocode_options ["fill", "line"]
 
   @query_source %{columns: nil, type: "query", variable: "🌎 Geocoding"}
 
@@ -109,8 +110,16 @@ defmodule KinoMapLibre.MapCell do
 
     updated_source = prefill_source_options(ctx.assigns.layers, value)
 
+    layer_type =
+      if source_type == "query" and layer["layer_type"] not in @geocode_options,
+        do: "fill",
+        else: layer["layer_type"]
+
     updated_fields =
-      Map.merge(%{"layer_source" => value, "source_type" => source_type}, updated_source)
+      Map.merge(
+        %{"layer_source" => value, "source_type" => source_type, "layer_type" => layer_type},
+        updated_source
+      )
 
     updated_layer = Map.merge(layer, updated_fields)
     updated_layers = List.replace_at(ctx.assigns.layers, idx, updated_layer)
@@ -333,11 +342,11 @@ defmodule KinoMapLibre.MapCell do
   defp build_arg_source(id, data, :table, coordinates, opts),
     do: [id, Macro.var(String.to_atom(data), nil), coordinates, opts]
 
-  defp build_arg_source(id, {data, nil}, :query, _, opts),
-    do: [id, data, opts]
+  defp build_arg_source(id, {data, nil}, :query, _, _),
+    do: [id, data]
 
-  defp build_arg_source(id, {data, strict}, :query, _, opts),
-    do: [id, data, String.to_atom(strict), opts]
+  defp build_arg_source(id, {data, strict}, :query, _, _),
+    do: [id, data, String.to_atom(strict)]
 
   defp build_arg_source(id, data, _, _, opts) do
     args = [type: :geojson, data: Macro.var(String.to_atom(data), nil)]
@@ -419,7 +428,6 @@ defmodule KinoMapLibre.MapCell do
 
   defp build_layer_source(layer), do: layer.layer_source
 
-  defp source_id(%{"layer_type" => "cluster"} = layer), do: "#{layer["layer_source"]}_clustered"
   defp source_id(%{"source_type" => "query", "layer_source_query" => nil}), do: nil
 
   defp source_id(%{"source_type" => "query"} = layer) do
@@ -427,6 +435,8 @@ defmodule KinoMapLibre.MapCell do
     strict = layer["layer_source_query_strict"]
     if strict, do: "#{query}_#{strict}", else: query
   end
+
+  defp source_id(%{"layer_type" => "cluster"} = layer), do: "#{layer["layer_source"]}_clustered"
 
   defp source_id(layer), do: layer["layer_source"]
 
