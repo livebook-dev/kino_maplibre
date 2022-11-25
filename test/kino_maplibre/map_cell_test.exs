@@ -297,16 +297,33 @@ defmodule KinoMapLibre.MapCellTest do
 
       assert MapCell.to_source(attrs) == """
              MapLibre.new()
-             |> MapLibre.add_source("brazil",
-               type: :geojson,
-               data:
-                 "https://nominatim.openstreetmap.org/search?format=geojson&limit=1&polygon_geojson=1&q=brazil"
-             )
+             |> MapLibre.add_geocode_source("brazil", "brazil")
              |> MapLibre.add_layer(
                id: "brazil_fill_1",
                source: "brazil",
                type: :fill,
                paint: [fill_color: "#00f900", fill_opacity: 0.5]
+             )\
+             """
+    end
+
+    test "source for a map with one postal code geocode source" do
+      layer = %{
+        "layer_source_query" => "95819",
+        "source_type" => "query",
+        "layer_type" => "circle"
+      }
+
+      attrs = build_attrs(layer)
+
+      assert MapCell.to_source(attrs) == """
+             MapLibre.new()
+             |> MapLibre.add_geocode_source("postalcode_95819", "95819")
+             |> MapLibre.add_layer(
+               id: "postalcode_95819_circle_1",
+               source: "postalcode_95819",
+               type: :circle,
+               paint: [circle_color: "#000000", circle_radius: 5, circle_opacity: 1]
              )\
              """
     end
@@ -325,11 +342,7 @@ defmodule KinoMapLibre.MapCellTest do
 
       assert MapCell.to_source(attrs) == """
              MapLibre.new()
-             |> MapLibre.add_source("sao_paulo_state",
-               type: :geojson,
-               data:
-                 "https://nominatim.openstreetmap.org/search?format=geojson&limit=1&polygon_geojson=1&state=sao paulo"
-             )
+             |> MapLibre.add_geocode_source("sao_paulo_state", "sao paulo", :state)
              |> MapLibre.add_layer(
                id: "sao_paulo_state_fill_1",
                source: "sao_paulo_state",
