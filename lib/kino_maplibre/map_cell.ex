@@ -518,13 +518,14 @@ defmodule KinoMapLibre.MapCell do
   end
 
   defp normalize_geocode_id(query) do
-    if Regex.match?(~r/^[\d-]*$/, query),
-      do: "postalcode_#{String.replace(query, ~r/\D+/, "")}",
-      else:
-        query
-        |> String.downcase()
-        |> String.normalize(:nfd)
-        |> String.replace(~r/[^a-zA-Z\s]/u, "")
-        |> String.replace(~r/\W+/, "_")
+    if Regex.match?(~r/^[\d-]*$/, query) do
+      "postalcode_#{String.replace(query, ~r/\D+/, "")}"
+    else
+      query
+      |> String.downcase()
+      |> String.normalize(:nfd)
+      |> String.replace(~r/[^a-zA-Z\s]/u, "")
+      |> String.replace(~r/\W+/, "_")
+    end
   end
 end
