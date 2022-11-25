@@ -307,6 +307,27 @@ defmodule KinoMapLibre.MapCellTest do
              """
     end
 
+    test "source for a map with one postal code geocode source" do
+      layer = %{
+        "layer_source_query" => "95819",
+        "source_type" => "query",
+        "layer_type" => "circle"
+      }
+
+      attrs = build_attrs(layer)
+
+      assert MapCell.to_source(attrs) == """
+             MapLibre.new()
+             |> MapLibre.add_geocode_source("postalcode_95819", "95819")
+             |> MapLibre.add_layer(
+               id: "postalcode_95819_circle_1",
+               source: "postalcode_95819",
+               type: :circle,
+               paint: [circle_color: "#000000", circle_radius: 5, circle_opacity: 1]
+             )\
+             """
+    end
+
     test "source for a map with one strict geocode source" do
       layer = %{
         "layer_source_query" => "sao paulo",

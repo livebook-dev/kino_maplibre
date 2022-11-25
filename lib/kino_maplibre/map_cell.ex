@@ -10,7 +10,7 @@ defmodule KinoMapLibre.MapCell do
   @as_float ["layer_opacity"]
   @geometries [Geo.Point, Geo.LineString, Geo.Polygon, Geo.GeometryCollection]
   @styles %{"street (non-commercial)" => :street, "terrain (non-commercial)" => :terrain}
-  @geocode_options ["fill", "line"]
+  @geocode_options ["fill", "line", "circle"]
 
   @query_source %{columns: nil, type: "query", variable: "🌎 Geocoding"}
 
@@ -518,10 +518,13 @@ defmodule KinoMapLibre.MapCell do
   end
 
   defp normalize_geocode_id(query) do
-    query
-    |> String.downcase()
-    |> String.normalize(:nfd)
-    |> String.replace(~r/[^A-z\s]/u, "")
-    |> String.replace(~r/\W+/, "_")
+    if Regex.match?(~r/^[\d-]*$/, query),
+      do: "postalcode_#{String.replace(query, ~r/\D+/, "")}",
+      else:
+        query
+        |> String.downcase()
+        |> String.normalize(:nfd)
+        |> String.replace(~r/[^a-zA-Z\s]/u, "")
+        |> String.replace(~r/\W+/, "_")
   end
 end
