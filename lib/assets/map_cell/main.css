@@ -19,7 +19,7 @@
   --yellow-100: #fff7ec;
   --yellow-600: #ffa83f;
 
-  --red--300: #F1A3A6;
+  --red--300: #f1a3a6;
 }
 
 p,
@@ -321,7 +321,7 @@ input::-webkit-inner-spin-button {
   justify-content: flex-end;
 }
 
-input[type=range]::-webkit-slider-thumb {
+input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
   border: none;
   height: 16px;
@@ -330,7 +330,7 @@ input[type=range]::-webkit-slider-thumb {
   background: var(--gray-400);
 }
 
-input[type=range]::-moz-range-thumb {
+input[type="range"]::-moz-range-thumb {
   border: none;
   height: 16px;
   width: 16px;
@@ -436,13 +436,13 @@ input[type="color"] {
   padding: 0;
 }
 
-::-webkit-color-swatch{
+::-webkit-color-swatch {
   border: 0;
   border-radius: 0px;
 }
 
 ::-moz-color-swatch,
-::-moz-focus-inner{
+::-moz-focus-inner {
   border: 0;
 }
 
