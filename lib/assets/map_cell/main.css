@@ -38,6 +38,7 @@ pre {
 .row {
   display: flex;
   gap: 24px;
+  margin-bottom: 16px;
 }
 
 .root {
@@ -102,7 +103,6 @@ input[type="number"] {
 .field {
   display: flex;
   flex-direction: column;
-  margin-bottom: 16px;
   flex-basis: 25%;
   max-width: 162px;
 }
@@ -186,12 +186,29 @@ input[type="number"] {
   pointer-events: none;
 }
 
+.button--toggle {
+  font-size: 0.875rem;
+  font-weight: normal;
+  text-transform: uppercase;
+  margin: 0;
+  margin-left: 4px;
+  padding: 0;
+  background: transparent;
+}
+
+.button--toggle .button-svg {
+  width: 0.75rem;
+  height: 0.6rem;
+}
+
+.button--toggle:hover {
+  background: transparent;
+}
+
 .button--sm {
   margin: 0;
-  padding: 5px 10px;
+  padding: 5px 0 0 10px;
   background: transparent;
-  position: relative;
-  left: 10px;
 }
 
 .button--sm:hover {
@@ -264,18 +281,26 @@ input::-webkit-inner-spin-button {
 }
 
 .accordion-control {
-  display: flex;
+  display: none;
   align-items: center;
   justify-content: space-between;
-  text-transform: uppercase;
-  font-size: 0.875rem;
-  padding: 0;
-  padding-right: 0.25rem;
-  padding-top: 0.25rem;
+  padding: 0.25rem 0;
   width: auto;
   flex-grow: 1;
   color: var(--gray-700);
   margin-bottom: 0px;
+}
+
+.accordion-open .accordion-control {
+  display: flex;
+}
+
+.accordion-open .accordion-body {
+  padding-bottom: 12px;
+}
+
+.accordion-title {
+  padding-left: 2px;
 }
 
 .button-svg {
@@ -283,42 +308,24 @@ input::-webkit-inner-spin-button {
   transition-duration: 200ms;
   width: 0.95rem;
   height: 0.95rem;
-  color: var(--gray-600);
+  color: var(--gray-500);
 }
 
-.rotate-180 {
-  transform: rotate(180deg);
+.rotate--90 {
+  transform: rotate(-90deg);
 }
 
 .rotate-0 {
   transform: rotate(0deg);
 }
 
-.wrapper {
-  border-bottom: 1px solid var(--gray-200);
-  margin-left: 14px;
-  margin-right: 14px;
-  margin-bottom: 6px;
-  padding-top: 0px;
-}
-
-.wrapper:last-child {
-  border: none;
-  margin-bottom: 0px;
-}
-
-.wrapper--closed {
-  padding-bottom: 6px;
-  margin-top: 0px;
-}
-
-.source-wrapper:last-child {
-  border-bottom: 1px solid var(--gray-300);
+.layer-wrapper {
+  margin: 0 14px;
 }
 
 .add-layer {
   display: flex;
-  justify-content: flex-end;
+  padding: 12px 0 0 14px;
 }
 
 input[type="range"]::-webkit-slider-thumb {
