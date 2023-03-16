@@ -154,12 +154,27 @@ defmodule KinoMapLibre.MapCell do
   end
 
   def handle_event("remove_layer", %{"layer" => idx}, ctx) do
-    updated_layers = List.delete_at(ctx.assigns.layers, idx)
+    updated_layers = List.delete_at(ctx.assigns.layers, idx) |> maybe_reactivate_layer()
     ctx = %{ctx | assigns: %{ctx.assigns | layers: updated_layers}}
     broadcast_event(ctx, "set_layers", %{"layers" => updated_layers})
 
     {:noreply, ctx}
   end
+
+  def handle_event("move_layer", %{"removedIndex" => remove, "addedIndex" => add}, ctx) do
+    {layer, layers} = List.pop_at(ctx.assigns.layers, remove)
+    updated_layers = List.insert_at(layers, add, layer)
+    ctx = %{ctx | assigns: %{ctx.assigns | layers: updated_layers}}
+    broadcast_event(ctx, "set_layers", %{"layers" => updated_layers})
+
+    {:noreply, ctx}
+  end
+
+  def maybe_reactivate_layer([layer]) do
+    if layer["active"], do: [layer], else: [%{layer | "active" => true}]
+  end
+
+  def maybe_reactivate_layer(layers), do: layers
 
   defp prefill_source_options(layers, value) do
     source = Enum.find(layers, &(&1["layer_source"] == value))
@@ -269,6 +284,7 @@ defmodule KinoMapLibre.MapCell do
           layer = Map.new(layer, fn {k, v} -> convert_field(k, v) end),
           layer_source = build_layer_source(layer),
           layer_id = "#{layer_source}_#{layer.layer_type}_#{idx + 1}",
+          layer.active,
           layer_source in valid_sources,
           do: %{
             field: :layer,
@@ -486,7 +502,8 @@ defmodule KinoMapLibre.MapCell do
       "source_latitude" => nil,
       "cluster_min" => 100,
       "cluster_max" => 750,
-      "cluster_colors" => ["#51bbd6", "#f1f075", "#f28cb1"]
+      "cluster_colors" => ["#51bbd6", "#f1f075", "#f28cb1"],
+      "active" => true
     }
   end
 

@@ -23,7 +23,8 @@ defmodule KinoMapLibre.MapCellTest do
     "source_latitude" => nil,
     "cluster_min" => 100,
     "cluster_max" => 750,
-    "cluster_colors" => ["#51bbd6", "#f1f075", "#f28cb1"]
+    "cluster_colors" => ["#51bbd6", "#f1f075", "#f28cb1"],
+    "active" => true
   }
 
   test "finds supported data in binding and sends new options to the client" do
