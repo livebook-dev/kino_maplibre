@@ -295,10 +295,11 @@ input::-webkit-inner-spin-button {
 
 .accordion-open .accordion-control {
   display: flex;
+  padding: 0 6px;
 }
 
 .accordion-open .accordion-body {
-  padding-bottom: 12px;
+  padding: 0 6px 12px;
 }
 
 .accordion-title {
@@ -321,7 +322,9 @@ input::-webkit-inner-spin-button {
 }
 
 .layer-wrapper {
-  margin: 0 14px;
+  margin: 7px 14px;
+  background-color: var(--gray-100);
+  border-radius: 0.5rem;
 }
 
 .add-layer {
