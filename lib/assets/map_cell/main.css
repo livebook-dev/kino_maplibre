@@ -14,6 +14,7 @@
   --gray-800: #1c2a3a;
   --gray-900: #0d1829;
 
+  --blue-50: #f5f7ff;
   --blue-100: #ecf0ff;
   --blue-200: #d8e0ff;
   --blue-600: #3e64ff;
@@ -40,7 +41,7 @@ pre {
 .row {
   display: flex;
   gap: 24px;
-  margin-bottom: 16px;
+  margin: 7px 0 0;
 }
 
 .root {
@@ -286,13 +287,20 @@ input::-webkit-inner-spin-button {
 
 .accordion-control {
   display: flex;
-  padding: 0 6px;
+  padding: 6px;
   align-items: center;
   justify-content: space-between;
   width: auto;
   flex-grow: 1;
   color: var(--gray-700);
   margin-bottom: 0px;
+  background-color: var(--blue-50);
+  border-radius: 0.5rem;
+}
+
+.accordion-control.expanded {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
 }
 
 .accordion-body {
@@ -301,6 +309,7 @@ input::-webkit-inner-spin-button {
 
 .accordion-title {
   padding-left: 2px;
+  margin-left: 2px;
 }
 
 .button-svg {
@@ -320,11 +329,14 @@ input::-webkit-inner-spin-button {
 
 .layer-wrapper {
   margin: 7px 14px;
-  background-color: var(--gray-100);
+}
+
+.layer-wrapper.card {
+  border: 1px solid var(--blue-200);
   border-radius: 0.5rem;
 }
 
-.layer-wrapper:hover {
+.accordion-control {
   cursor: move;
 }
 
