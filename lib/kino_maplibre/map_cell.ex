@@ -161,6 +161,15 @@ defmodule KinoMapLibre.MapCell do
     {:noreply, ctx}
   end
 
+  def handle_event("move_layer", %{"removedIndex" => remove, "addedIndex" => add}, ctx) do
+    {layer, layers} = List.pop_at(ctx.assigns.layers, remove)
+    updated_layers = List.insert_at(layers, add, layer)
+    ctx = %{ctx | assigns: %{ctx.assigns | layers: updated_layers}}
+    broadcast_event(ctx, "set_layers", %{"layers" => updated_layers})
+
+    {:noreply, ctx}
+  end
+
   defp prefill_source_options(layers, value) do
     source = Enum.find(layers, &(&1["layer_source"] == value))
 
