@@ -278,6 +278,7 @@ defmodule KinoMapLibre.MapCell do
           layer = Map.new(layer, fn {k, v} -> convert_field(k, v) end),
           layer_source = build_layer_source(layer),
           layer_id = "#{layer_source}_#{layer.layer_type}_#{idx + 1}",
+          layer.active,
           layer_source in valid_sources,
           do: %{
             field: :layer,
@@ -495,7 +496,8 @@ defmodule KinoMapLibre.MapCell do
       "source_latitude" => nil,
       "cluster_min" => 100,
       "cluster_max" => 750,
-      "cluster_colors" => ["#51bbd6", "#f1f075", "#f28cb1"]
+      "cluster_colors" => ["#51bbd6", "#f1f075", "#f28cb1"],
+      "active" => true
     }
   end
 

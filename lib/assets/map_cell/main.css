@@ -15,6 +15,8 @@
   --gray-900: #0d1829;
 
   --blue-100: #ecf0ff;
+  --blue-200: #d8e0ff;
+  --blue-600: #3e64ff;
 
   --yellow-100: #fff7ec;
   --yellow-600: #ffa83f;
@@ -283,22 +285,17 @@ input::-webkit-inner-spin-button {
 }
 
 .accordion-control {
-  display: none;
+  display: flex;
+  padding: 0 6px;
   align-items: center;
   justify-content: space-between;
-  padding: 0.25rem 0;
   width: auto;
   flex-grow: 1;
   color: var(--gray-700);
   margin-bottom: 0px;
 }
 
-.accordion-open .accordion-control {
-  display: flex;
-  padding: 0 6px;
-}
-
-.accordion-open .accordion-body {
+.accordion-body {
   padding: 0 6px 12px;
 }
 
@@ -325,6 +322,11 @@ input::-webkit-inner-spin-button {
   margin: 7px 14px;
   background-color: var(--gray-100);
   border-radius: 0.5rem;
+}
+
+.layer-controls {
+  display: flex;
+  justify-content: flex-end;
 }
 
 .add-layer {
@@ -479,4 +481,79 @@ input[type="color"] {
 
 .input-color--xl ::-moz-color-swatch {
   border-radius: 0.5rem;
+}
+
+/* Switch SM */
+
+.switch-sm {
+  margin-top: 3px;
+}
+
+.switch-button {
+  display: inline-block;
+  position: relative;
+  width: 28px;
+  height: 14px;
+  user-select: none;
+}
+
+.switch-button[disabled] {
+  pointer-events: none;
+  opacity: 0.5;
+}
+
+.switch-button-checkbox {
+  outline: none;
+  appearance: none;
+  position: absolute;
+  display: block;
+  width: 14px;
+  height: 14px;
+  margin: 0;
+  border-radius: 9999px;
+  background-color: white;
+  border: 2.5px solid var(--gray-300);
+  cursor: pointer;
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 300ms;
+}
+
+.switch-button-bg {
+  display: block;
+  height: 100%;
+  width: 100%;
+  border-radius: 9999px;
+  background-color: var(--gray-300);
+  cursor: pointer;
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 300ms;
+}
+
+.switch-button-checkbox:checked {
+  background: white;
+  border-color: var(--blue-600);
+  transform: translateX(100%);
+}
+
+.switch-button-checkbox:checked + .switch-button-bg {
+  background-color: var(--blue-600);
+}
+
+.switch-button-checkbox:disabled {
+  background: white;
+  border-color: var(--blue-100);
+}
+
+.switch-button-checkbox:disabled + .switch-button-bg {
+  background-color: var(--blue-100);
+}
+
+.hidden-checkbox-input {
+  display: none;
+}
+
+.hidden-checkbox:hover {
+  cursor: pointer;
 }
