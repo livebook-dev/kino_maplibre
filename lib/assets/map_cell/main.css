@@ -324,6 +324,10 @@ input::-webkit-inner-spin-button {
   border-radius: 0.5rem;
 }
 
+.layer-wrapper:hover {
+  cursor: move;
+}
+
 .layer-controls {
   display: flex;
   justify-content: flex-end;
@@ -331,7 +335,7 @@ input::-webkit-inner-spin-button {
 
 .add-layer {
   display: flex;
-  padding: 12px 0 0 14px;
+  padding: 12px 0 0 16px;
 }
 
 input[type="range"]::-webkit-slider-thumb {
