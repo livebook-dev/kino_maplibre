@@ -20,7 +20,7 @@ This integration automatically renders the `MapLibre` struct as a map:
 Ml.new(
   center: {-90.73414, 14.55524},
   zoom: 13,
-  style: "https://api.maptiler.com/maps/basic/style.json?key=get_your_own_OpIi9ZULNHzrESv6T2vL"
+  style: "https://api.maptiler.com/maps/basic/style.json?key=Q4UbchekCfyvXvZcWRoU"
 )
 |> Ml.update_layer("building",
   paint: [
