@@ -42,7 +42,7 @@ defmodule KinoMapLibre.MapCellTest do
     }
 
     point = %Geo.Point{coordinates: {100.4933, 13.7551}, properties: %{year: 2004}}
-    quakes = "https://maplibre.org/maplibre-gl-js-docs/assets/earthquakes.geojson"
+    quakes = "https://maplibre.org/maplibre-gl-js/docs/assets/earthquakes.geojson"
 
     binding = [earthquakes: earthquakes, conferences: conferences, point: point, quakes: quakes]
     # TODO: Use Code.env_for_eval on Elixir v1.14+
