@@ -349,9 +349,20 @@ input::-webkit-inner-spin-button {
   justify-content: flex-end;
 }
 
+.add-layer-container {
+  display: flex;
+  justify-content: space-between;
+}
+
 .add-layer {
   display: flex;
   padding: 12px 0 0 16px;
+}
+
+.add-key {
+  padding-right: 16px;
+  bottom: 5px;
+  position: relative;
 }
 
 input[type="range"]::-webkit-slider-thumb {
@@ -501,6 +512,66 @@ input[type="color"] {
 
 .input-color--xl ::-moz-color-swatch {
   border-radius: 0.5rem;
+}
+
+.hidden-checkbox-input {
+  display: none;
+}
+
+.input-icon {
+  border: 1px solid var(--gray-200);
+  outline: none;
+  padding: 8px 12px 8px 42px;
+}
+
+.input-icon:hover {
+  cursor: pointer;
+}
+
+.input-icon.unavailable {
+  border-color: var(--red-300);
+}
+
+.input-icon-container {
+  position: relative;
+}
+
+.icon-container {
+  position: absolute;
+  top: 20px;
+  left: 4px;
+  padding: 5px 6px;
+  border-right: 1px solid var(--gray-200);
+  width: 22px;
+  height: 23px;
+  background-color: var(--gray-200);
+  border-radius: 0.5rem;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  margin-left: 1px;
+}
+
+.icon-container:hover {
+  cursor: pointer;
+  background-color: var(--gray-300);
+}
+
+.input-icon-text {
+  border: 1px solid var(--gray-200);
+  outline: none;
+  padding: 8px 12px 8px 42px;
+}
+
+.input-icon.required {
+  border: 1px solid var(--red--300);
+}
+
+.input-icon-text.required {
+  border: 1px solid var(--red--300);
+}
+
+.hidden-checkbox:hover {
+  cursor: pointer;
 }
 
 /* Switch SM */

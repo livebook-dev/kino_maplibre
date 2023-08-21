@@ -9,17 +9,28 @@ defmodule KinoMapLibre.MapCell do
   @as_atom ["layer_type", "source_type", "symbol_type"]
   @as_float ["layer_opacity"]
   @geometries [Geo.Point, Geo.LineString, Geo.Polygon, Geo.GeometryCollection]
-  @styles %{"street (non-commercial)" => :street, "terrain (non-commercial)" => :terrain}
+  @styles %{
+    "street (non-commercial)" => :street,
+    "terrain (non-commercial)" => :terrain,
+    "street (commercial)" => :street,
+    "terrain (commercial)" => :terrain
+  }
   @geocode_options ["fill", "line", "circle"]
 
   @query_source %{columns: nil, type: "query", variable: "🌎 Geocoding"}
 
   @impl true
   def init(attrs, ctx) do
+    maptiler_key = attrs["maptiler_key"]
+    maptiler_key_secret = attrs["maptiler_key_secret"]
+
     root_fields = %{
       "style" => attrs["style"] || "default",
       "center" => attrs["center"],
-      "zoom" => attrs["zoom"] || 0
+      "zoom" => attrs["zoom"] || 0,
+      "maptiler_key" => maptiler_key,
+      "use_maptiler_key_secret" => maptiler_key_secret || !maptiler_key,
+      "maptiler_key_secret" => maptiler_key_secret
     }
 
     layers =
@@ -248,6 +259,7 @@ defmodule KinoMapLibre.MapCell do
     layers = attrs["layers"]
     sources = build_sources(layers)
     symbols = build_symbols(layers)
+    key = maptiler_key(attrs)
 
     attrs =
       Map.take(attrs, ["style", "center", "zoom", "ml_alias"])
@@ -257,7 +269,7 @@ defmodule KinoMapLibre.MapCell do
       field: nil,
       name: :new,
       module: attrs.ml_alias,
-      args: build_arg_root(style: attrs.style, center: attrs.center, zoom: attrs.zoom)
+      args: build_arg_root(style: attrs.style, center: attrs.center, zoom: attrs.zoom, key: key)
     }
 
     sources =
@@ -482,7 +494,7 @@ defmodule KinoMapLibre.MapCell do
 
   defp missing_dep() do
     unless Code.ensure_loaded?(MapLibre) do
-      ~s/{:maplibre, "~> 0.1.0"}/
+      ~s/{:maplibre, "~> 0.1.6"}/
     end
   end
 
@@ -545,4 +557,11 @@ defmodule KinoMapLibre.MapCell do
       |> String.replace(~r/\W+/, "_")
     end
   end
+
+  defp maptiler_key(%{"style" => style, "use_maptiler_key_secret" => secret} = attrs) do
+    if String.contains?(style, "(commercial)"), do: maptiler_key(secret, attrs)
+  end
+
+  defp maptiler_key(true, %{"maptiler_key_secret" => key}), do: key || ""
+  defp maptiler_key(false, %{"maptiler_key" => key}), do: key || ""
 end
