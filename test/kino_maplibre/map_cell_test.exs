@@ -7,7 +7,15 @@ defmodule KinoMapLibre.MapCellTest do
 
   setup :configure_livebook_bridge
 
-  @root %{"style" => nil, "center" => nil, "zoom" => 0, "ml_alias" => MapLibre}
+  @root %{
+    "style" => "default",
+    "center" => nil,
+    "zoom" => 0,
+    "maptiler_key" => nil,
+    "use_maptiler_key_secret" => true,
+    "maptiler_key_secret" => nil,
+    "ml_alias" => MapLibre
+  }
   @default_layer %{
     "layer_source" => nil,
     "layer_source_query" => nil,
@@ -347,6 +355,122 @@ defmodule KinoMapLibre.MapCellTest do
              |> MapLibre.add_layer(
                id: "sao_paulo_state_fill_1",
                source: "sao_paulo_state",
+               type: :fill,
+               paint: [fill_color: "#00f900", fill_opacity: 0.5]
+             )\
+             """
+    end
+
+    test "source for a map with external maptiler key" do
+      root = %{
+        "style" => "street (commercial)",
+        "maptiler_key" => "maptiler_key_here",
+        "use_maptiler_key_secret" => false
+      }
+
+      layer = %{
+        "layer_source_query" => "brazil",
+        "source_type" => "query",
+        "layer_type" => "fill",
+        "layer_color" => "#00f900",
+        "layer_opacity" => 0.5
+      }
+
+      attrs = build_attrs(root, layer)
+
+      assert MapCell.to_source(attrs) == """
+             MapLibre.new(style: :street, key: "maptiler_key_here")
+             |> MapLibre.add_geocode_source("brazil", "brazil")
+             |> MapLibre.add_layer(
+               id: "brazil_fill_1",
+               source: "brazil",
+               type: :fill,
+               paint: [fill_color: "#00f900", fill_opacity: 0.5]
+             )\
+             """
+    end
+
+    test "source for a map with external maptiler key from secret" do
+      root = %{
+        "style" => "street (commercial)",
+        "maptiler_key_secret" => "MAPTILER_SECRET",
+        "use_maptiler_key_secret" => true
+      }
+
+      layer = %{
+        "layer_source_query" => "brazil",
+        "source_type" => "query",
+        "layer_type" => "fill",
+        "layer_color" => "#00f900",
+        "layer_opacity" => 0.5
+      }
+
+      attrs = build_attrs(root, layer)
+
+      assert MapCell.to_source(attrs) == """
+             MapLibre.new(style: :street, key: System.fetch_env!("LB_MAPTILER_SECRET"))
+             |> MapLibre.add_geocode_source("brazil", "brazil")
+             |> MapLibre.add_layer(
+               id: "brazil_fill_1",
+               source: "brazil",
+               type: :fill,
+               paint: [fill_color: "#00f900", fill_opacity: 0.5]
+             )\
+             """
+    end
+
+    test "do not fallback to our key when a key is not provided for commercial styles" do
+      root = %{
+        "style" => "street (commercial)",
+        "maptiler_key" => nil,
+        "use_maptiler_key_secret" => false
+      }
+
+      layer = %{
+        "layer_source_query" => "brazil",
+        "source_type" => "query",
+        "layer_type" => "fill",
+        "layer_color" => "#00f900",
+        "layer_opacity" => 0.5
+      }
+
+      attrs = build_attrs(root, layer)
+
+      assert MapCell.to_source(attrs) == """
+             MapLibre.new(style: :street, key: "")
+             |> MapLibre.add_geocode_source("brazil", "brazil")
+             |> MapLibre.add_layer(
+               id: "brazil_fill_1",
+               source: "brazil",
+               type: :fill,
+               paint: [fill_color: "#00f900", fill_opacity: 0.5]
+             )\
+             """
+    end
+
+    test "do not fallback to our key when a secret key is not provided for commercial styles" do
+      root = %{
+        "style" => "street (commercial)",
+        "maptiler_key_secret" => nil,
+        "use_maptiler_key_secret" => true
+      }
+
+      layer = %{
+        "layer_source_query" => "brazil",
+        "source_type" => "query",
+        "layer_type" => "fill",
+        "layer_color" => "#00f900",
+        "layer_opacity" => 0.5
+      }
+
+      attrs = build_attrs(root, layer)
+
+      assert MapCell.to_source(attrs) == """
+             MapLibre.new(style: :street, key: "")
+             |> MapLibre.add_geocode_source("brazil", "brazil")
+             |> MapLibre.add_layer(
+               id: "brazil_fill_1",
+               source: "brazil",
                type: :fill,
                paint: [fill_color: "#00f900", fill_opacity: 0.5]
              )\
