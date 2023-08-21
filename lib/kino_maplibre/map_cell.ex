@@ -21,16 +21,13 @@ defmodule KinoMapLibre.MapCell do
 
   @impl true
   def init(attrs, ctx) do
-    maptiler_key = attrs["maptiler_key"]
-    maptiler_key_secret = attrs["maptiler_key_secret"]
-
     root_fields = %{
       "style" => attrs["style"] || "default",
       "center" => attrs["center"],
       "zoom" => attrs["zoom"] || 0,
-      "maptiler_key" => maptiler_key,
-      "use_maptiler_key_secret" => maptiler_key_secret || !maptiler_key,
-      "maptiler_key_secret" => maptiler_key_secret
+      "maptiler_key" => attrs["maptiler_key"],
+      "use_maptiler_key_secret" => attrs["use_maptiler_key_secret"] || true,
+      "maptiler_key_secret" => attrs["maptiler_key_secret"]
     }
 
     layers =
@@ -562,6 +559,16 @@ defmodule KinoMapLibre.MapCell do
     if String.contains?(style, "(commercial)"), do: maptiler_key(secret, attrs)
   end
 
-  defp maptiler_key(true, %{"maptiler_key_secret" => key}), do: key || ""
+  # Always return an empty key for commercial styles when a key is not provided to ensure
+  # that the :key argument will be passed (preventing using our key as a fallback)
+  defp maptiler_key(true, %{"maptiler_key_secret" => secret}), do: from_secret(secret)
   defp maptiler_key(false, %{"maptiler_key" => key}), do: key || ""
+
+  defp from_secret(nil), do: ""
+
+  defp from_secret(secret) do
+    quote do
+      System.fetch_env!(unquote("LB_#{secret}"))
+    end
+  end
 end
