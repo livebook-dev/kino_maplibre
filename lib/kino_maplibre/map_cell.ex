@@ -26,7 +26,7 @@ defmodule KinoMapLibre.MapCell do
       "center" => attrs["center"],
       "zoom" => attrs["zoom"] || 0,
       "maptiler_key" => attrs["maptiler_key"],
-      "use_maptiler_key_secret" => attrs["use_maptiler_key_secret"] || true,
+      "use_maptiler_key_secret" => Map.get(attrs, "use_maptiler_key_secret", true),
       "maptiler_key_secret" => attrs["maptiler_key_secret"]
     }
 
