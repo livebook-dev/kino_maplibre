@@ -1,7 +1,7 @@
 defmodule KinoMapLibre.MixProject do
   use Mix.Project
 
-  @version "0.1.8"
+  @version "0.1.9"
   @description "MapLibre integration with Livebook"
 
   def project do
@@ -29,7 +29,7 @@ defmodule KinoMapLibre.MixProject do
       {:kino, "~> 0.7"},
       {:table, "~> 0.1.0"},
       {:maplibre, "~> 0.1.6"},
-      {:ex_doc, "~> 0.28", only: :dev, runtime: false}
+      {:ex_doc, "~> 0.30", only: :dev, runtime: false}
     ]
   end
 
