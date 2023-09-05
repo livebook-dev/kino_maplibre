@@ -21,12 +21,17 @@ defmodule KinoMapLibre.MapCell do
 
   @impl true
   def init(attrs, ctx) do
+    use_maptiler_key_secret =
+      if Map.has_key?(attrs, "use_maptiler_key_secret"),
+        do: attrs["use_maptiler_key_secret"],
+        else: true
+
     root_fields = %{
       "style" => attrs["style"] || "default",
       "center" => attrs["center"],
       "zoom" => attrs["zoom"] || 0,
       "maptiler_key" => attrs["maptiler_key"],
-      "use_maptiler_key_secret" => attrs["use_maptiler_key_secret"] || true,
+      "use_maptiler_key_secret" => use_maptiler_key_secret,
       "maptiler_key_secret" => attrs["maptiler_key_secret"]
     }
 

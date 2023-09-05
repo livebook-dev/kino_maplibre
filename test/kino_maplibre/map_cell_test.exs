@@ -100,6 +100,36 @@ defmodule KinoMapLibre.MapCellTest do
            """
   end
 
+  test "maptiler external key as secret - from attrs" do
+    root = %{
+      "use_maptiler_key_secret" => true,
+      "maptiler_key_secret" => "MAPTILER_SECRET_KEY",
+      "style" => "street (commercial)"
+    }
+
+    attrs = Map.merge(@root, root)
+    {_kino, source} = start_smart_cell!(MapCell, attrs)
+
+    assert source == """
+           MapLibre.new(style: :street, key: System.fetch_env!("LB_MAPTILER_SECRET_KEY"))\
+           """
+  end
+
+  test "maptiler external key as input - from attrs" do
+    root = %{
+      "use_maptiler_key_secret" => false,
+      "maptiler_key" => "MAPTILER_KEY",
+      "style" => "street (commercial)"
+    }
+
+    attrs = Map.merge(@root, root)
+    {_kino, source} = start_smart_cell!(MapCell, attrs)
+
+    assert source == """
+           MapLibre.new(style: :street, key: "MAPTILER_KEY")\
+           """
+  end
+
   describe "code generation" do
     test "source for a default empty map" do
       attrs = Map.merge(@root, %{"layers" => [@default_layer]})
