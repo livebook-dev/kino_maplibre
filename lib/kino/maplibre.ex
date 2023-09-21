@@ -53,12 +53,22 @@ defmodule Kino.MapLibre do
   @doc false
   def static(%__MODULE__{} = ml) do
     data = %{spec: ml.spec, events: ml.events}
-    Kino.JS.new(__MODULE__, data, export_info_string: "maplibre")
+
+    Kino.JS.new(__MODULE__, data,
+      export: fn data -> {"maplibre", data} end,
+      # TODO: remove legacy export attribute once we require Kino v0.11.0
+      export_info_string: "maplibre"
+    )
   end
 
   def static(%MapLibre{} = ml) do
     data = %{spec: ml.spec, events: %{}}
-    Kino.JS.new(__MODULE__, data, export_info_string: "maplibre")
+
+    Kino.JS.new(__MODULE__, data,
+      export: fn data -> {"maplibre", data} end,
+      # TODO: remove legacy export attribute once we require Kino v0.11.0
+      export_info_string: "maplibre"
+    )
   end
 
   @doc """
