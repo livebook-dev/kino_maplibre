@@ -178,6 +178,35 @@ defmodule Kino.MapLibre do
   end
 
   @doc """
+  Adds a geolocate control to the map. A geolocate control provides a button that uses the
+  browser's geolocation API to locate the user on the map.
+
+  ## Options
+
+    * `:track_user_location` - If true, the geolocate control acts as a toggle button that when
+    active the user's location is actively monitored for changes. Default: `false`
+
+    * `:high_accuracy` - Uses a more accurate position if the device is able to. Default: `false`
+
+    * `:show_user_location` - A dot will be shown on the map at the user's location. Default: `true`
+
+    * `:show_accuracy_circle` - By default, if `:show_user_location` is `true`, a transparent
+    circle will be drawn around the user location indicating the accuracy (95% confidence level)
+    of the user's location. Default: `true`
+
+  ## Examples
+
+        Kino.MapLibre.add_locate(map)
+        Kino.MapLibre.add_locate(map, high_accuracy: true, track_user_location: true)
+  """
+  @spec add_locate(maplibre(), keyword()) :: :ok | %__MODULE__{}
+  def add_locate(map, opts \\ []) do
+    high_accuracy = Keyword.get(opts, :high_accuracy, false)
+    locate = %{high_accuracy: high_accuracy, options: normalize_opts(opts)}
+    update_events(map, :locate, locate)
+  end
+
+  @doc """
   A helper function to allow inspect a cluster on click. Receives the ID of the clusters layer
   ## Examples
 
@@ -284,6 +313,12 @@ defmodule Kino.MapLibre do
   def handle_cast({:controls, control}, ctx) do
     broadcast_event(ctx, "add_nav_controls", control)
     ctx = update_assigned_events(ctx, :controls, control)
+    {:noreply, ctx}
+  end
+
+  def handle_cast({:locate, locate}, ctx) do
+    broadcast_event(ctx, "add_locate", locate)
+    ctx = update_assigned_events(ctx, :locate, locate)
     {:noreply, ctx}
   end
 
