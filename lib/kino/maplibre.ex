@@ -178,8 +178,10 @@ defmodule Kino.MapLibre do
   end
 
   @doc """
-  Adds a geolocate control to the map. A geolocate control provides a button that uses the
-  browser's geolocation API to locate the user on the map.
+  Adds a geolocate control to the map.
+
+  A geolocate control provides a button that uses the browser's
+  geolocation API to locate the user on the map.
 
   ## Options
 
