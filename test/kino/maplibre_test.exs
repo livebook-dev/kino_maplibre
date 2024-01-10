@@ -146,7 +146,7 @@ defmodule Kino.MapLibreTest do
     end
   end
 
-  describe "add_nav_controls/3" do
+  describe "add_nav_controls/2" do
     test "adds a nav control to a static map" do
       ml = Ml.new() |> Kino.MapLibre.add_nav_controls()
       assert ml.events.controls == [%{options: %{}, position: "top-right"}]
@@ -180,6 +180,39 @@ defmodule Kino.MapLibreTest do
       assert_broadcast_event(ml, "add_nav_controls", %{
         options: %{"position" => "top-left", "showZoom" => false},
         position: "top-left"
+      })
+    end
+  end
+
+  describe "add_locate/2" do
+    test "adds a geolocate control to a static map" do
+      ml = Ml.new() |> Kino.MapLibre.add_locate()
+      assert ml.events.locate == [%{options: %{}, high_accuracy: false}]
+    end
+
+    test "adds a geolocate control to a dynamic map" do
+      ml = Ml.new() |> Kino.MapLibre.new()
+      Kino.MapLibre.add_locate(ml, high_accuracy: true)
+      data = connect(ml)
+
+      assert data.events.locate == [%{high_accuracy: true, options: %{"highAccuracy" => true}}]
+
+      assert_broadcast_event(ml, "add_locate", %{options: %{}, high_accuracy: true})
+    end
+
+    test "adds a geolocate control to a converted map" do
+      ml = Ml.new() |> Kino.MapLibre.add_locate(high_accuracy: true) |> Kino.MapLibre.new()
+      Kino.MapLibre.add_locate(ml, track_user_location: true)
+      data = connect(ml)
+
+      assert data.events.locate == [
+               %{options: %{"trackUserLocation" => true}, high_accuracy: false},
+               %{options: %{"highAccuracy" => true}, high_accuracy: true}
+             ]
+
+      assert_broadcast_event(ml, "add_locate", %{
+        options: %{"trackUserLocation" => true},
+        high_accuracy: false
       })
     end
   end
