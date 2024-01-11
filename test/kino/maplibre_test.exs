@@ -217,6 +217,33 @@ defmodule Kino.MapLibreTest do
     end
   end
 
+  describe "add_terrain/1" do
+    test "adds a terrain control to a static map" do
+      ml = Ml.new() |> Kino.MapLibre.add_terrain()
+      assert ml.events.terrain == [%{}]
+    end
+
+    test "adds a geolocate control to a dynamic map" do
+      ml = Ml.new() |> Kino.MapLibre.new()
+      Kino.MapLibre.add_terrain(ml)
+      data = connect(ml)
+
+      assert data.events.terrain == [%{}]
+
+      assert_broadcast_event(ml, "add_terrain", %{})
+    end
+
+    test "adds a terrain control to a converted map" do
+      ml = Ml.new() |> Kino.MapLibre.add_terrain() |> Kino.MapLibre.new()
+      Kino.MapLibre.add_terrain(ml)
+      data = connect(ml)
+
+      assert data.events.terrain == [%{}, %{}]
+
+      assert_broadcast_event(ml, "add_terrain", %{})
+    end
+  end
+
   describe "clusters_expansion/2" do
     test "adds a cluster expansion to a static map" do
       ml = Ml.new() |> Kino.MapLibre.clusters_expansion("clusters")

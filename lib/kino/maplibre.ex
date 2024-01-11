@@ -209,6 +209,18 @@ defmodule Kino.MapLibre do
   end
 
   @doc """
+  Adds a terrain control to the map for turning the terrain on and off.
+
+  ## Examples
+
+        Kino.MapLibre.add_terrain(map)
+  """
+  @spec add_terrain(maplibre()) :: :ok | %__MODULE__{}
+  def add_terrain(map) do
+    update_events(map, :terrain, %{})
+  end
+
+  @doc """
   A helper function to allow inspect a cluster on click. Receives the ID of the clusters layer
   ## Examples
 
@@ -321,6 +333,12 @@ defmodule Kino.MapLibre do
   def handle_cast({:locate, locate}, ctx) do
     broadcast_event(ctx, "add_locate", locate)
     ctx = update_assigned_events(ctx, :locate, locate)
+    {:noreply, ctx}
+  end
+
+  def handle_cast({:terrain, terrain}, ctx) do
+    broadcast_event(ctx, "add_terrain", terrain)
+    ctx = update_assigned_events(ctx, :terrain, terrain)
     {:noreply, ctx}
   end
 
