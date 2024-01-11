@@ -173,6 +173,7 @@ defmodule Kino.MapLibre do
   @spec add_nav_controls(maplibre(), keyword()) :: :ok | %__MODULE__{}
   def add_nav_controls(map, opts \\ []) do
     position = Keyword.get(opts, :position, "top-right")
+    opts = Keyword.delete(opts, :position)
     control = %{position: position, options: normalize_opts(opts)}
     update_events(map, :controls, control)
   end
@@ -204,6 +205,7 @@ defmodule Kino.MapLibre do
   @spec add_locate(maplibre(), keyword()) :: :ok | %__MODULE__{}
   def add_locate(map, opts \\ []) do
     high_accuracy = Keyword.get(opts, :high_accuracy, false)
+    opts = Keyword.delete(opts, :high_accuracy)
     locate = %{high_accuracy: high_accuracy, options: normalize_opts(opts)}
     update_events(map, :locate, locate)
   end

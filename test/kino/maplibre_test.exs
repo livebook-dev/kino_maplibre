@@ -173,12 +173,12 @@ defmodule Kino.MapLibreTest do
       data = connect(ml)
 
       assert data.events.controls == [
-               %{options: %{"position" => "top-left", "showZoom" => false}, position: "top-left"},
+               %{options: %{"showZoom" => false}, position: "top-left"},
                %{options: %{"showCompass" => false}, position: "top-right"}
              ]
 
       assert_broadcast_event(ml, "add_nav_controls", %{
-        options: %{"position" => "top-left", "showZoom" => false},
+        options: %{"showZoom" => false},
         position: "top-left"
       })
     end
@@ -195,7 +195,7 @@ defmodule Kino.MapLibreTest do
       Kino.MapLibre.add_locate(ml, high_accuracy: true)
       data = connect(ml)
 
-      assert data.events.locate == [%{high_accuracy: true, options: %{"highAccuracy" => true}}]
+      assert data.events.locate == [%{high_accuracy: true, options: %{}}]
 
       assert_broadcast_event(ml, "add_locate", %{options: %{}, high_accuracy: true})
     end
@@ -207,7 +207,7 @@ defmodule Kino.MapLibreTest do
 
       assert data.events.locate == [
                %{options: %{"trackUserLocation" => true}, high_accuracy: false},
-               %{options: %{"highAccuracy" => true}, high_accuracy: true}
+               %{options: %{}, high_accuracy: true}
              ]
 
       assert_broadcast_event(ml, "add_locate", %{
