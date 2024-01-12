@@ -221,6 +221,18 @@ defmodule Kino.MapLibre do
   end
 
   @doc """
+  Adds a geocoder control to the map to handle Nominatim queries
+
+  ## Examples
+
+        Kino.MapLibre.add_geocode(map)
+  """
+  @spec add_geocode(maplibre()) :: :ok | %__MODULE__{}
+  def add_geocode(map) do
+    update_events(map, :geocode, %{})
+  end
+
+  @doc """
   A helper function to allow inspect a cluster on click. Receives the ID of the clusters layer
   ## Examples
 
@@ -339,6 +351,12 @@ defmodule Kino.MapLibre do
   def handle_cast({:terrain, terrain}, ctx) do
     broadcast_event(ctx, "add_terrain", terrain)
     ctx = update_assigned_events(ctx, :terrain, terrain)
+    {:noreply, ctx}
+  end
+
+  def handle_cast({:geocode, geocode}, ctx) do
+    broadcast_event(ctx, "add_geocode", geocode)
+    ctx = update_assigned_events(ctx, :geocode, geocode)
     {:noreply, ctx}
   end
 
