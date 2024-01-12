@@ -198,11 +198,11 @@ defmodule Kino.MapLibre do
 
   ## Examples
 
-        Kino.MapLibre.add_locate(map)
-        Kino.MapLibre.add_locate(map, high_accuracy: true, track_user_location: true)
+        Kino.MapLibre.add_locate_control(map)
+        Kino.MapLibre.add_locate_control(map, high_accuracy: true, track_user_location: true)
   """
-  @spec add_locate(maplibre(), keyword()) :: :ok | %__MODULE__{}
-  def add_locate(map, opts \\ []) do
+  @spec add_locate_control(maplibre(), keyword()) :: :ok | %__MODULE__{}
+  def add_locate_control(map, opts \\ []) do
     {high_accuracy, opts} = Keyword.pop(opts, :high_accuracy, false)
     locate = %{high_accuracy: high_accuracy, options: normalize_opts(opts)}
     update_events(map, :locate, locate)
@@ -213,10 +213,10 @@ defmodule Kino.MapLibre do
 
   ## Examples
 
-        Kino.MapLibre.add_terrain(map)
+        Kino.MapLibre.add_terrain_control(map)
   """
-  @spec add_terrain(maplibre()) :: :ok | %__MODULE__{}
-  def add_terrain(map) do
+  @spec add_terrain_control(maplibre()) :: :ok | %__MODULE__{}
+  def add_terrain_control(map) do
     update_events(map, :terrain, %{})
   end
 
@@ -225,10 +225,10 @@ defmodule Kino.MapLibre do
 
   ## Examples
 
-        Kino.MapLibre.add_geocode(map)
+        Kino.MapLibre.add_geocode_control(map)
   """
-  @spec add_geocode(maplibre()) :: :ok | %__MODULE__{}
-  def add_geocode(map) do
+  @spec add_geocode_control(maplibre()) :: :ok | %__MODULE__{}
+  def add_geocode_control(map) do
     update_events(map, :geocode, %{})
   end
 

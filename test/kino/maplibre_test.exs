@@ -184,15 +184,15 @@ defmodule Kino.MapLibreTest do
     end
   end
 
-  describe "add_locate/2" do
+  describe "add_locate_control/2" do
     test "adds a geolocate control to a static map" do
-      ml = Ml.new() |> Kino.MapLibre.add_locate()
+      ml = Ml.new() |> Kino.MapLibre.add_locate_control()
       assert ml.events.locate == [%{options: %{}, high_accuracy: false}]
     end
 
     test "adds a geolocate control to a dynamic map" do
       ml = Ml.new() |> Kino.MapLibre.new()
-      Kino.MapLibre.add_locate(ml, high_accuracy: true)
+      Kino.MapLibre.add_locate_control(ml, high_accuracy: true)
       data = connect(ml)
 
       assert data.events.locate == [%{high_accuracy: true, options: %{}}]
@@ -201,8 +201,10 @@ defmodule Kino.MapLibreTest do
     end
 
     test "adds a geolocate control to a converted map" do
-      ml = Ml.new() |> Kino.MapLibre.add_locate(high_accuracy: true) |> Kino.MapLibre.new()
-      Kino.MapLibre.add_locate(ml, track_user_location: true)
+      ml =
+        Ml.new() |> Kino.MapLibre.add_locate_control(high_accuracy: true) |> Kino.MapLibre.new()
+
+      Kino.MapLibre.add_locate_control(ml, track_user_location: true)
       data = connect(ml)
 
       assert data.events.locate == [
@@ -217,15 +219,15 @@ defmodule Kino.MapLibreTest do
     end
   end
 
-  describe "add_terrain/1" do
+  describe "add_terrain_control/1" do
     test "adds a terrain control to a static map" do
-      ml = Ml.new() |> Kino.MapLibre.add_terrain()
+      ml = Ml.new() |> Kino.MapLibre.add_terrain_control()
       assert ml.events.terrain == [%{}]
     end
 
     test "adds a terrain control to a dynamic map" do
       ml = Ml.new() |> Kino.MapLibre.new()
-      Kino.MapLibre.add_terrain(ml)
+      Kino.MapLibre.add_terrain_control(ml)
       data = connect(ml)
 
       assert data.events.terrain == [%{}]
@@ -234,8 +236,8 @@ defmodule Kino.MapLibreTest do
     end
 
     test "adds a terrain control to a converted map" do
-      ml = Ml.new() |> Kino.MapLibre.add_terrain() |> Kino.MapLibre.new()
-      Kino.MapLibre.add_terrain(ml)
+      ml = Ml.new() |> Kino.MapLibre.add_terrain_control() |> Kino.MapLibre.new()
+      Kino.MapLibre.add_terrain_control(ml)
       data = connect(ml)
 
       assert data.events.terrain == [%{}, %{}]
@@ -244,15 +246,15 @@ defmodule Kino.MapLibreTest do
     end
   end
 
-  describe "add_geocode/1" do
+  describe "add_geocode_control/1" do
     test "adds a geocode control to a static map" do
-      ml = Ml.new() |> Kino.MapLibre.add_geocode()
+      ml = Ml.new() |> Kino.MapLibre.add_geocode_control()
       assert ml.events.geocode == [%{}]
     end
 
     test "adds a geocode control to a dynamic map" do
       ml = Ml.new() |> Kino.MapLibre.new()
-      Kino.MapLibre.add_geocode(ml)
+      Kino.MapLibre.add_geocode_control(ml)
       data = connect(ml)
 
       assert data.events.geocode == [%{}]
@@ -261,8 +263,8 @@ defmodule Kino.MapLibreTest do
     end
 
     test "adds a geocode control to a converted map" do
-      ml = Ml.new() |> Kino.MapLibre.add_geocode() |> Kino.MapLibre.new()
-      Kino.MapLibre.add_geocode(ml)
+      ml = Ml.new() |> Kino.MapLibre.add_geocode_control() |> Kino.MapLibre.new()
+      Kino.MapLibre.add_geocode_control(ml)
       data = connect(ml)
 
       assert data.events.geocode == [%{}, %{}]
