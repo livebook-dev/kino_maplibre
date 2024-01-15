@@ -233,6 +233,18 @@ defmodule Kino.MapLibre do
   end
 
   @doc """
+  Adds a fullscreen control for toggling the map in and out of fullscreen mode.
+
+  ## Examples
+
+        Kino.MapLibre.add_fullscreen_control(map)
+  """
+  @spec add_fullscreen_control(maplibre()) :: :ok | %__MODULE__{}
+  def add_fullscreen_control(map) do
+    update_events(map, :fullscreen, %{})
+  end
+
+  @doc """
   A helper function to allow inspect a cluster on click. Receives the ID of the clusters layer
   ## Examples
 
@@ -357,6 +369,12 @@ defmodule Kino.MapLibre do
   def handle_cast({:geocode, geocode}, ctx) do
     broadcast_event(ctx, "add_geocode", geocode)
     ctx = update_assigned_events(ctx, :geocode, geocode)
+    {:noreply, ctx}
+  end
+
+  def handle_cast({:fullscreen, fullscreen}, ctx) do
+    broadcast_event(ctx, "add_fullscreen", fullscreen)
+    ctx = update_assigned_events(ctx, :fullscreen, fullscreen)
     {:noreply, ctx}
   end
 

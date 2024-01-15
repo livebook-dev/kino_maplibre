@@ -273,6 +273,33 @@ defmodule Kino.MapLibreTest do
     end
   end
 
+  describe "add_fullscreen_control/1" do
+    test "adds a fullscreen control to a static map" do
+      ml = Ml.new() |> Kino.MapLibre.add_fullscreen_control()
+      assert ml.events.fullscreen == [%{}]
+    end
+
+    test "adds a fullscreen control to a dynamic map" do
+      ml = Ml.new() |> Kino.MapLibre.new()
+      Kino.MapLibre.add_fullscreen_control(ml)
+      data = connect(ml)
+
+      assert data.events.fullscreen == [%{}]
+
+      assert_broadcast_event(ml, "add_fullscreen", %{})
+    end
+
+    test "adds a fullscreen control to a converted map" do
+      ml = Ml.new() |> Kino.MapLibre.add_fullscreen_control() |> Kino.MapLibre.new()
+      Kino.MapLibre.add_fullscreen_control(ml)
+      data = connect(ml)
+
+      assert data.events.fullscreen == [%{}, %{}]
+
+      assert_broadcast_event(ml, "add_fullscreen", %{})
+    end
+  end
+
   describe "clusters_expansion/2" do
     test "adds a cluster expansion to a static map" do
       ml = Ml.new() |> Kino.MapLibre.clusters_expansion("clusters")
