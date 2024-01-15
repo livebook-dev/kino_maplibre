@@ -1,9 +1,8 @@
 import * as maplibregl from "maplibre-gl";
 import VectorTextProtocol from "maplibre-gl-vector-text-protocol";
 import MaplibreGeocoder from "@maplibre/maplibre-gl-geocoder";
-import '@maplibre/maplibre-gl-geocoder/dist/maplibre-gl-geocoder.css';
-import 'maplibre-gl/dist/maplibre-gl.css'
-
+import "@maplibre/maplibre-gl-geocoder/dist/maplibre-gl-geocoder.css";
+import "maplibre-gl/dist/maplibre-gl.css";
 
 export function init(ctx, data) {
   ctx.importCSS("main.css");
