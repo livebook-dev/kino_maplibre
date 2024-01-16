@@ -266,6 +266,29 @@ defmodule Kino.MapLibre do
   end
 
   @doc """
+  Adds a control to exports the map as a PDF or image (PNG, JPEG and SVG).
+
+  ## Options
+
+    * `:filename` - The filename without the extension. Default: "map"
+
+    * `:pintable_area` Display printable area on the map. It helps to adjust printable area before printing.
+
+    * `:crosshair` Display crosshair on the map. It helps to adjust the map center before printing.
+
+  ## Examples
+
+        Kino.MapLibre.add_scale_control(map)
+        Kino.MapLibre.add_scale_control(map, unit: :nautical)
+  """
+  @spec add_export_map(maplibre(), keyword()) :: :ok | %__MODULE__{}
+  def add_export_map(map, opts \\ []) do
+    {filename, opts} = Keyword.pop(opts, :filename, "map")
+    export_map = %{filename: filename, options: normalize_pascal_case_opts(opts)}
+    update_events(map, :export_map, export_map)
+  end
+
+  @doc """
   A helper function to allow inspect a cluster on click. Receives the ID of the clusters layer
   ## Examples
 
@@ -405,6 +428,12 @@ defmodule Kino.MapLibre do
     {:noreply, ctx}
   end
 
+  def handle_cast({:export_map, export_map}, ctx) do
+    broadcast_event(ctx, "add_export_map", export_map)
+    ctx = update_assigned_events(ctx, :export_map, export_map)
+    {:noreply, ctx}
+  end
+
   def handle_cast({:hover, layer}, ctx) do
     broadcast_event(ctx, "add_hover", layer)
     ctx = update_assigned_events(ctx, :hover, layer)
@@ -464,14 +493,22 @@ defmodule Kino.MapLibre do
   defp normalize_location({lng, lat}), do: [lng, lat]
 
   defp normalize_opts(opts) do
-    Map.new(opts, fn {key, value} ->
-      {snake_to_camel(key), value}
-    end)
+    Map.new(opts, fn {key, value} -> {snake_to_camel(key), value} end)
+  end
+
+  defp normalize_pascal_case_opts(opts) do
+    Map.new(opts, fn {key, value} -> {snake_to_pascal(key), value} end)
   end
 
   defp snake_to_camel(atom) do
     string = Atom.to_string(atom)
     [part | parts] = String.split(string, "_")
     Enum.join([String.downcase(part, :ascii) | Enum.map(parts, &String.capitalize(&1, :ascii))])
+  end
+
+  defp snake_to_pascal(atom) do
+    string = Atom.to_string(atom)
+    [part | parts] = String.split(string, "_")
+    Enum.join([String.capitalize(part, :ascii) | Enum.map(parts, &String.capitalize(&1, :ascii))])
   end
 end
