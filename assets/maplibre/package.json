@@ -1,0 +1,18 @@
+{
+  "private": true,
+  "scripts": {
+    "build": "esbuild main.js --bundle --minify --outfile=../../lib/assets/maplibre/build/main.js --format=esm --loader:.js=jsx",
+    "dev": "esbuild main.js --bundle --minify --outfile=../../lib/assets/maplibre/build/main.js --format=esm --loader:.js=jsx --watch"
+  },
+  "dependencies": {
+    "@maplibre/maplibre-gl-geocoder": "^1.5.0",
+    "maplibre-gl": "^3.6.2",
+    "maplibre-gl-vector-text-protocol": "github:jimmyrocks/maplibre-gl-vector-text-protocol"
+  },
+  "devDependencies": {
+    "@types/events": "^3.0.3",
+    "@types/node": "^20.11.2",
+    "esbuild": "^0.15.16",
+    "events": "^3.3.0"
+  }
+}

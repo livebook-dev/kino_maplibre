@@ -1,16 +1,11 @@
-import "https://cdn.jsdelivr.net/npm/maplibre-gl@3.6.2/dist/maplibre-gl.min.js";
-// TODO: point to npm when released
-import "https://cdn.jsdelivr.net/gh/jimmyrocks/maplibre-gl-vector-text-protocol@main/dist/maplibre-gl-vector-text-protocol.min.js";
-import "https://cdn.jsdelivr.net/npm/@maplibre/maplibre-gl-geocoder@1.5.0/dist/maplibre-gl-geocoder.min.js";
+import * as maplibregl from "maplibre-gl";
+import VectorTextProtocol from "maplibre-gl-vector-text-protocol";
+import MaplibreGeocoder from "@maplibre/maplibre-gl-geocoder";
+import "@maplibre/maplibre-gl-geocoder/dist/maplibre-gl-geocoder.css";
+import "maplibre-gl/dist/maplibre-gl.css";
 
 export function init(ctx, data) {
-  ctx.importCSS(
-    "https://cdn.jsdelivr.net/npm/maplibre-gl@3.6.2/dist/maplibre-gl.min.css"
-  );
-
-  ctx.importCSS(
-    "https://cdn.jsdelivr.net/npm/@maplibre/maplibre-gl-geocoder@1.5.0/lib/maplibre-gl-geocoder.min.css"
-  );
+  ctx.importCSS("main.css");
 
   ctx.root.innerHTML = `
     <div id='map' style='width: 896px; height: 400px;'></div>

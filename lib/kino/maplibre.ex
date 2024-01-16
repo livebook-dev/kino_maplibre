@@ -26,7 +26,7 @@ defmodule Kino.MapLibre do
       |> Kino.MapLibre.add_marker({-69, 50})
   """
 
-  use Kino.JS, assets_path: "lib/assets/maplibre"
+  use Kino.JS, assets_path: "lib/assets/maplibre/build"
   use Kino.JS.Live
 
   defstruct spec: %{}, events: %{}
