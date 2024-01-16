@@ -245,6 +245,27 @@ defmodule Kino.MapLibre do
   end
 
   @doc """
+  Adds a scale control for displaying the ratio of a distance on the map to the corresponding
+  distance on the ground.
+
+  ## Options
+
+    * `:max_width` - The maximum length of the scale control in pixels. Default: 100
+
+    * `:unit` - Unit of the distance (`:imperial`, `:metric` or ':nautical'). Default: `:metric`
+
+  ## Examples
+
+        Kino.MapLibre.add_scale_control(map)
+        Kino.MapLibre.add_scale_control(map, unit: :nautical)
+  """
+  @spec add_scale_control(maplibre(), keyword()) :: :ok | %__MODULE__{}
+  def add_scale_control(map, opts \\ []) do
+    scale = %{options: normalize_opts(opts)}
+    update_events(map, :scale, scale)
+  end
+
+  @doc """
   A helper function to allow inspect a cluster on click. Receives the ID of the clusters layer
   ## Examples
 
@@ -375,6 +396,12 @@ defmodule Kino.MapLibre do
   def handle_cast({:fullscreen, fullscreen}, ctx) do
     broadcast_event(ctx, "add_fullscreen", fullscreen)
     ctx = update_assigned_events(ctx, :fullscreen, fullscreen)
+    {:noreply, ctx}
+  end
+
+  def handle_cast({:scale, scale}, ctx) do
+    broadcast_event(ctx, "add_scale", scale)
+    ctx = update_assigned_events(ctx, :scale, scale)
     {:noreply, ctx}
   end
 
