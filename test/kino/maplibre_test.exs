@@ -328,6 +328,37 @@ defmodule Kino.MapLibreTest do
     end
   end
 
+  describe "add_export_map/2" do
+    test "adds a export map control to a static map" do
+      ml = Ml.new() |> Kino.MapLibre.add_export_map()
+      assert ml.events.export_map == [%{filename: "map", options: %{}}]
+    end
+
+    test "adds a export map control to a dynamic map" do
+      ml = Ml.new() |> Kino.MapLibre.new()
+      Kino.MapLibre.add_export_map(ml, filename: "exported_map")
+      data = connect(ml)
+
+      assert data.events.export_map == [%{filename: "exported_map", options: %{}}]
+
+      assert_broadcast_event(ml, "add_export_map", %{filename: "exported_map"})
+    end
+
+    test "adds a export map control to a converted map" do
+      ml = Ml.new() |> Kino.MapLibre.add_export_map() |> Kino.MapLibre.new()
+
+      Kino.MapLibre.add_export_map(ml, filename: "street_map", crosshair: true)
+      data = connect(ml)
+
+      assert data.events.export_map == [
+               %{filename: "street_map", options: %{"Crosshair" => true}},
+               %{filename: "map", options: %{}}
+             ]
+
+      assert_broadcast_event(ml, "add_export_map", %{filename: "street_map", options: %{}})
+    end
+  end
+
   describe "clusters_expansion/2" do
     test "adds a cluster expansion to a static map" do
       ml = Ml.new() |> Kino.MapLibre.clusters_expansion("clusters")

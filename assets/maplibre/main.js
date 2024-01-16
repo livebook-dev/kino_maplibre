@@ -1,8 +1,11 @@
 import * as maplibregl from "maplibre-gl";
 import VectorTextProtocol from "maplibre-gl-vector-text-protocol";
 import MaplibreGeocoder from "@maplibre/maplibre-gl-geocoder";
+import * as MaplibreExportControl from "@watergis/maplibre-gl-export";
+
 import "@maplibre/maplibre-gl-geocoder/dist/maplibre-gl-geocoder.css";
 import "maplibre-gl/dist/maplibre-gl.css";
+import "@watergis/maplibre-gl-export/dist/maplibre-gl-export.css";
 
 export function init(ctx, data) {
   ctx.importCSS("main.css");
@@ -22,6 +25,7 @@ export function init(ctx, data) {
     geocode = [],
     fullscreen = [],
     scale = [],
+    export_map = [],
     hover = [],
     center = [],
     info = [],
@@ -57,6 +61,9 @@ export function init(ctx, data) {
     });
     scale.forEach((options) => {
       addScale(options);
+    });
+    export_map.forEach((options) => {
+      addExportMap(options);
     });
     hover.forEach((layer) => {
       addHover(layer);
@@ -109,7 +116,11 @@ export function init(ctx, data) {
   });
 
   ctx.handleEvent("add_scale", (options) => {
-    addScale();
+    addScale(options);
+  });
+
+  ctx.handleEvent("add_export_map", (options) => {
+    addExportMap(options);
   });
 
   ctx.handleEvent("clusters_expansion", (clusters) => {
@@ -179,6 +190,14 @@ export function init(ctx, data) {
   function addScale(options) {
     const scale = new maplibregl.ScaleControl(options);
     map.addControl(scale);
+  }
+
+  function addExportMap({ filename, options }) {
+    const export_map = new MaplibreExportControl.MaplibreExportControl({
+      Filename: filename,
+      ...options,
+    });
+    map.addControl(export_map);
   }
 
   function loadImage({ name, url, options }) {
