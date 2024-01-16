@@ -317,8 +317,7 @@ defmodule Kino.MapLibreTest do
     end
 
     test "adds a scale control to a converted map" do
-      ml =
-        Ml.new() |> Kino.MapLibre.add_scale_control() |> Kino.MapLibre.new()
+      ml = Ml.new() |> Kino.MapLibre.add_scale_control() |> Kino.MapLibre.new()
 
       Kino.MapLibre.add_scale_control(ml, max_width: 200)
       data = connect(ml)
