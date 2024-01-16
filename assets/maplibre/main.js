@@ -21,6 +21,7 @@ export function init(ctx, data) {
     terrain = [],
     geocode = [],
     fullscreen = [],
+    scale = [],
     hover = [],
     center = [],
     info = [],
@@ -53,6 +54,9 @@ export function init(ctx, data) {
     });
     fullscreen.forEach(() => {
       addFullScreen();
+    });
+    scale.forEach((options) => {
+      addScale(options);
     });
     hover.forEach((layer) => {
       addHover(layer);
@@ -102,6 +106,10 @@ export function init(ctx, data) {
 
   ctx.handleEvent("add_fullscreen", () => {
     addFullScreen();
+  });
+
+  ctx.handleEvent("add_scale", (options) => {
+    addScale();
   });
 
   ctx.handleEvent("clusters_expansion", (clusters) => {
@@ -166,6 +174,11 @@ export function init(ctx, data) {
   function addFullScreen() {
     const fullscreen = new maplibregl.FullscreenControl();
     map.addControl(fullscreen);
+  }
+
+  function addScale(options) {
+    const scale = new maplibregl.ScaleControl(options);
+    map.addControl(scale);
   }
 
   function loadImage({ name, url, options }) {

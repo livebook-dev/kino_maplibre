@@ -300,6 +300,35 @@ defmodule Kino.MapLibreTest do
     end
   end
 
+  describe "add_scale_control/2" do
+    test "adds a scale control to a static map" do
+      ml = Ml.new() |> Kino.MapLibre.add_scale_control()
+      assert ml.events.scale == [%{options: %{}}]
+    end
+
+    test "adds a scale control to a dynamic map" do
+      ml = Ml.new() |> Kino.MapLibre.new()
+      Kino.MapLibre.add_scale_control(ml, unit: :nautical)
+      data = connect(ml)
+
+      assert data.events.scale == [%{options: %{"unit" => :nautical}}]
+
+      assert_broadcast_event(ml, "add_scale", %{options: %{"unit" => :nautical}})
+    end
+
+    test "adds a scale control to a converted map" do
+      ml =
+        Ml.new() |> Kino.MapLibre.add_scale_control() |> Kino.MapLibre.new()
+
+      Kino.MapLibre.add_scale_control(ml, max_width: 200)
+      data = connect(ml)
+
+      assert data.events.scale == [%{options: %{"maxWidth" => 200}}, %{options: %{}}]
+
+      assert_broadcast_event(ml, "add_scale", %{options: %{"maxWidth" => 200}})
+    end
+  end
+
   describe "clusters_expansion/2" do
     test "adds a cluster expansion to a static map" do
       ml = Ml.new() |> Kino.MapLibre.clusters_expansion("clusters")
