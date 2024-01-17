@@ -5,9 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [v0.1.10](https://github.com/livebook-dev/kino_maplibre/tree/v0.1.10) (2023-09-25)
+## [v0.1.11](https://github.com/livebook-dev/kino_maplibre/tree/v0.1.11) (2024-01-17)
 
 ### Added
+
+* Geolocate control via `add_locate_control/2` ([#64](https://github.com/livebook-dev/kino_maplibre/pull/64))
+* Terrain control via `add_terrain_control/1` ([#68](https://github.com/livebook-dev/kino_maplibre/pull/68))
+* Geocode control via `add_geocode_control/1` ([#69](https://github.com/livebook-dev/kino_maplibre/pull/69))
+* Fullscreen control via `add_fullscreen_control/1` ([#71](https://github.com/livebook-dev/kino_maplibre/pull/71))
+* Scale control via `add_scale_control/2` ([#73](https://github.com/livebook-dev/kino_maplibre/pull/73))
+* Export map via `add_export_map/2` ([#74](https://github.com/livebook-dev/kino_maplibre/pull/74))
+
+## [v0.1.10](https://github.com/livebook-dev/kino_maplibre/tree/v0.1.10) (2023-09-25)
+
+### Fixed
 
 * Fix `Kino` export deprecations ([#61](https://github.com/livebook-dev/kino_maplibre/pull/61))
 
