@@ -200,11 +200,9 @@ export function init(ctx, data) {
     map.addControl(export_map);
   }
 
-  function loadImage({ name, url, options }) {
-    map.loadImage(url, (error, image) => {
-      if (error) throw error;
-      map.addImage(name, image, options);
-    });
+  async function loadImage({ name, url, options }) {
+    const image = await map.loadImage(url);
+    map.addImage(name, image.data, options);
   }
 
   function centerOnClick(symbols) {
