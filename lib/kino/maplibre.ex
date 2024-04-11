@@ -272,14 +272,14 @@ defmodule Kino.MapLibre do
 
     * `:filename` - The filename without the extension. Default: "map"
 
-    * `:pintable_area` Display printable area on the map. It helps to adjust printable area before printing.
+    * `:printable_area` Display printable area on the map. It helps to adjust printable area before printing.
 
     * `:crosshair` Display crosshair on the map. It helps to adjust the map center before printing.
 
   ## Examples
 
-        Kino.MapLibre.add_scale_control(map)
-        Kino.MapLibre.add_scale_control(map, unit: :nautical)
+        Kino.MapLibre.add_export_map(map)
+        Kino.MapLibre.add_export_map(map, crosshair: true)
   """
   @spec add_export_map(maplibre(), keyword()) :: :ok | %__MODULE__{}
   def add_export_map(map, opts \\ []) do
