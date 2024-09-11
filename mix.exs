@@ -29,7 +29,7 @@ defmodule KinoMapLibre.MixProject do
       {:kino, "~> 0.7"},
       {:table, "~> 0.1.0"},
       {:maplibre, "~> 0.1.9"},
-      {:ex_doc, "~> 0.34.2", only: :dev, runtime: false}
+      {:ex_doc, "~> 0.30", only: :dev, runtime: false}
     ]
   end
 
