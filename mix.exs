@@ -1,7 +1,7 @@
 defmodule KinoMapLibre.MixProject do
   use Mix.Project
 
-  @version "0.1.12"
+  @version "0.1.13"
   @description "MapLibre integration with Livebook"
 
   def project do
